@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: torchtmpl
+Version: 0.0.1
+License-File: LICENSE
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: torch>=1.13.1
+Requires-Dist: torchvision>=0.14.1
+Requires-Dist: torchinfo>=1.7.2
+Requires-Dist: wandb>=0.13.11
+Requires-Dist: scipy>=1.10.1
+Requires-Dist: tqdm>=4.65.0
+Requires-Dist: matplotlib>=3.7.1
+Dynamic: license-file
