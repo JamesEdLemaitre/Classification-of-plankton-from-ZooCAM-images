@@ -44,3 +44,26 @@ def VanillaCNN(cfg, input_size, num_classes):
     num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
     out_layers = [nn.Flatten(start_dim=1), nn.Linear(num_features, num_classes)]
     return nn.Sequential(conv_model, *out_layers)
+
+
+def VanillaCNNV2(cfg, input_size, num_classes):
+    """
+    VanillaCNN with more options to configure it
+    """
+    layers = []
+    cin = input_size[0]
+    cout = cfg["layer1_size"]
+    for i in range(cfg["num_layers"]):
+        layers.extend(conv_relu_bn(cin, cout))
+        layers.extend(conv_relu_bn(cout, cout))
+        layers.extend(conv_down(cout, 2 * cout))
+        cin = 2 * cout
+        cout = 2 * cout
+    conv_model = nn.Sequential(*layers)
+
+    # Compute the output size of the convolutional part
+    probing_tensor = torch.zeros((1,) + input_size)
+    out_cnn = conv_model(probing_tensor)  # B, K, H, W
+    num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
+    out_layers = [nn.Flatten(start_dim=1), nn.Linear(num_features, num_classes)]
+    return nn.Sequential(conv_model, *out_layers)

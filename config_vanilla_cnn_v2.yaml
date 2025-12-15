@@ -1,0 +1,28 @@
+data:
+  trainpath: './data/3-md-4040-2026-challenge/train'
+  testpath: './data/3-md-4040-2026-challenge/test'
+  batch_size: 256
+  num_workers: 4
+  valid_ratio: 0.2
+  images_resize: 64
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.01
+
+nepochs: 5
+loss: "CrossEntropyLoss"
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+
+# model:
+#   class: Linear
+model:
+  class: VanillaCNNV2
+  layer1_size : 8
+  num_layers : 2

@@ -11,6 +11,7 @@ import yaml
 import wandb
 import torch
 import torchinfo.torchinfo as torchinfo
+from tqdm import tqdm
 
 # Local imports
 from . import data
@@ -29,6 +30,8 @@ def train(config):
     else:
         device = torch.device("cpu")
         use_cuda = False
+
+    print(f"Training on device: {device}")
 
     if "wandb" in config["logging"]:
         wandb_config = config["logging"]["wandb"]
@@ -51,16 +54,11 @@ def train(config):
     logging.info("= Model")
     model_config = config["model"]
     model = models.build_model(model_config, input_size, num_classes)
-    model.to(device)
+    
 
     # Build the loss
     logging.info("= Loss")
     loss = optim.get_loss(config["loss"])
-
-    # Build the optimizer
-    logging.info("= Optimizer")
-    optim_config = config["optim"]
-    optimizer = optim.get_optimizer(optim_config, model.parameters())
 
     # Build the callbacks
     logging_config = config["logging"]
@@ -99,12 +97,29 @@ def train(config):
     if wandb_log is not None:
         wandb.log({"summary": summary_text})
 
+    # Put model on device:
+    model = model.to(device)
+
+    # Build the optimizer
+    logging.info("= Optimizer")
+    optim_config = config["optim"]
+    optimizer = optim.get_optimizer(optim_config, model.parameters())
+
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
         model, str(logdir / "best_model.pt"), min_is_best=True
     )
 
-    for e in range(config["nepochs"]):
+    epoch_pbar = tqdm(
+        range(config["nepochs"]), 
+        desc="Training", 
+        unit="epoch",
+        position=0,
+        leave=True
+    )
+    
+
+    for e in epoch_pbar:
         # Train 1 epoch
         train_loss = utils.train(model, train_loader, loss, optimizer, device)
 
