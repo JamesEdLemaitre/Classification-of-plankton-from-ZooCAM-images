@@ -1,2 +1,3 @@
-python -m torchtmpl.main
+python -m torchtmpl.data # To launch data.py
+
 

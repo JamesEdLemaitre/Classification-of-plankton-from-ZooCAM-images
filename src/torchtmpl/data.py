@@ -98,7 +98,16 @@ def test_dataloaders():
         "num_workers": 0,
         "images_resize": 128
     }
-    use_cuda = torch.cuda.is_available()
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        use_cuda = True
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        use_cuda = True 
+    else:
+        use_cuda = False
+
+    print(f"Use CUDA: {use_cuda} | Device: {device}")
 
     train_loader, valid_loader, input_size, num_classes = get_dataloaders(
         data_config, use_cuda

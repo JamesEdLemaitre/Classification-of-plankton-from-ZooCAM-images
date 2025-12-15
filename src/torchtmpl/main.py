@@ -20,8 +20,15 @@ from . import utils
 
 
 def train(config):
-    use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        use_cuda = True
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        use_cuda = True  # On garde le nom pour compatibilité
+    else:
+        device = torch.device("cpu")
+        use_cuda = False
 
     if "wandb" in config["logging"]:
         wandb_config = config["logging"]["wandb"]
