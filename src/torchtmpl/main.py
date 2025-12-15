@@ -19,8 +19,7 @@ from . import models
 from . import optim
 from . import utils
 
-
-def train(config):
+def get_device():
     if torch.cuda.is_available():
         device = torch.device("cuda")
         use_cuda = True
@@ -31,6 +30,10 @@ def train(config):
         device = torch.device("cpu")
         use_cuda = False
 
+    return device, use_cuda
+
+def train(config):
+    device, use_cuda = get_device()
     print(f"Training on device: {device}")
 
     if "wandb" in config["logging"]:
@@ -124,28 +127,32 @@ def train(config):
         train_loss = utils.train(model, train_loader, loss, optimizer, device)
 
         # Test
-        test_loss = utils.test(model, valid_loader, loss, device)
+        test_loss, test_metrics = utils.test(model, valid_loader, loss, device)
 
         updated = model_checkpoint.update(test_loss)
         logging.info(
-            "[%d/%d] Test loss : %.3f %s"
+            "[%d/%d] Test loss : %.3f %s | metrics: %s"
             % (
                 e,
                 config["nepochs"],
                 test_loss,
                 "[>> BETTER <<]" if updated else "",
+                test_metrics,
             )
         )
 
         # Update the dashboard
-        metrics = {"train_CE": train_loss, "test_CE": test_loss}
+        metrics = {"train_CE": train_loss, "test_CE": test_loss, **test_metrics}
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
 
 
 def test(config):
-    raise NotImplementedError
+    device, use_cuda = get_device()
+    print(f"Evaluating on device: {device}")
+
+
 
 
 if __name__ == "__main__":

@@ -7,6 +7,14 @@ import os
 import torch
 import torch.nn
 from tqdm import tqdm
+from sklearn.metrics import (
+            accuracy_score,
+            f1_score,
+            precision_score,
+            recall_score,
+            roc_auc_score,
+        )
+import numpy as np 
 
 
 def generate_unique_logpath(logdir, raw_run_name):
@@ -125,6 +133,9 @@ def test(model, loader, f_loss, device):
 
     total_loss = 0
     num_samples = 0
+    all_targets = []
+    all_preds = []
+    all_outputs = []
 
     pbar = tqdm(
         loader,
@@ -149,4 +160,29 @@ def test(model, loader, f_loss, device):
             total_loss += inputs.shape[0] * loss.item()
             num_samples += inputs.shape[0]
 
-    return total_loss / num_samples
+            _, preds = torch.max(outputs, 1)
+
+            # Stocke les résultats pour les métriques globales
+            all_targets.extend(targets.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
+            all_outputs.extend(outputs.cpu().numpy())  # Pour AUC-ROC
+
+    # Calcul des métriques
+    metrics = {
+        'loss': total_loss / len(loader.dataset),
+        'accuracy': accuracy_score(all_targets, all_preds),
+        'f1': f1_score(all_targets, all_preds, average='macro'),
+        'precision': precision_score(all_targets, all_preds, average='macro'),
+        'recall': recall_score(all_targets, all_preds, average='macro'),
+    }
+
+    if len(set(all_targets)) > 2:  # Multi-classe
+        from sklearn.preprocessing import label_binarize
+        targets_onehot = label_binarize(all_targets, classes=sorted(set(all_targets)))
+        metrics['auc_roc'] = roc_auc_score(
+            targets_onehot,
+            np.array(all_outputs),
+            multi_class='ovr'
+        )
+
+    return total_loss / num_samples, metrics

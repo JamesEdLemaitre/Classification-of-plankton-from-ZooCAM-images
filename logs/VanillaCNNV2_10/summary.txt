@@ -1,0 +1,67 @@
+Logdir : logs/VanillaCNNV2_10
+## Command 
+/Users/loucamalerba/Desktop/kaggle_challenge_sdi/src/torchtmpl/main.py ./config_vanilla_cnn_v2.yaml train
+
+ Config : {'data': {'trainpath': './data/3-md-4040-2026-challenge/train', 'testpath': './data/3-md-4040-2026-challenge/test', 'batch_size': 1024, 'num_workers': 4, 'valid_ratio': 0.2, 'images_resize': 16}, 'optim': {'algo': 'AdamW', 'params': {'lr': 0.01}}, 'nepochs': 5, 'loss': 'CrossEntropyLoss', 'logging': {'logdir': './logs'}, 'model': {'class': 'VanillaCNNV2', 'layer1_size': 4, 'num_layers': 2}} 
+
+## Summary of the model architecture
+==========================================================================================
+Layer (type:depth-idx)                   Output Shape              Param #
+==========================================================================================
+Sequential                               [1024, 86]                --
+├─Sequential: 1-1                        [1024, 16, 4, 4]          --
+│    └─Conv2d: 2-1                       [1024, 4, 16, 16]         40
+│    └─ReLU: 2-2                         [1024, 4, 16, 16]         --
+│    └─BatchNorm2d: 2-3                  [1024, 4, 16, 16]         8
+│    └─Conv2d: 2-4                       [1024, 4, 16, 16]         148
+│    └─ReLU: 2-5                         [1024, 4, 16, 16]         --
+│    └─BatchNorm2d: 2-6                  [1024, 4, 16, 16]         8
+│    └─Conv2d: 2-7                       [1024, 8, 8, 8]           136
+│    └─ReLU: 2-8                         [1024, 8, 8, 8]           --
+│    └─BatchNorm2d: 2-9                  [1024, 8, 8, 8]           16
+│    └─Conv2d: 2-10                      [1024, 8, 8, 8]           584
+│    └─ReLU: 2-11                        [1024, 8, 8, 8]           --
+│    └─BatchNorm2d: 2-12                 [1024, 8, 8, 8]           16
+│    └─Conv2d: 2-13                      [1024, 8, 8, 8]           584
+│    └─ReLU: 2-14                        [1024, 8, 8, 8]           --
+│    └─BatchNorm2d: 2-15                 [1024, 8, 8, 8]           16
+│    └─Conv2d: 2-16                      [1024, 16, 4, 4]          528
+│    └─ReLU: 2-17                        [1024, 16, 4, 4]          --
+│    └─BatchNorm2d: 2-18                 [1024, 16, 4, 4]          32
+├─Flatten: 1-2                           [1024, 256]               --
+├─Linear: 1-3                            [1024, 86]                22,102
+==========================================================================================
+Total params: 24,218
+Trainable params: 24,218
+Non-trainable params: 0
+Total mult-adds (Units.MEGABYTES): 166.12
+==========================================================================================
+Input size (MB): 1.05
+Forward/backward pass size (MB): 63.62
+Params size (MB): 0.10
+Estimated Total Size (MB): 64.76
+==========================================================================================
+
+## Loss
+
+CrossEntropyLoss()
+
+## Datasets : 
+Train : Dataset ImageFolder
+    Number of datapoints: 1093785
+    Root location: ./data/3-md-4040-2026-challenge/train
+    StandardTransform
+Transform: Compose(
+               Grayscale(num_output_channels=1)
+               Resize(size=(16, 16), interpolation=bilinear, max_size=None, antialias=True)
+               ToTensor()
+           )
+Validation : Dataset ImageFolder
+    Number of datapoints: 1093785
+    Root location: ./data/3-md-4040-2026-challenge/train
+    StandardTransform
+Transform: Compose(
+               Grayscale(num_output_channels=1)
+               Resize(size=(16, 16), interpolation=bilinear, max_size=None, antialias=True)
+               ToTensor()
+           )
