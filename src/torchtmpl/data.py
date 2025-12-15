@@ -5,11 +5,15 @@ import logging
 import random
 
 # External imports
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.utils.data
 import torchvision
 from torchvision import transforms
+from torchvision.utils import make_grid
+import torchvision.transforms.functional as F
+import PIL
 
 import matplotlib.pyplot as plt
 
@@ -20,21 +24,33 @@ def show_image(X):
     plt.imshow(X[0] if num_c == 1 else X.permute(1, 2, 0))
     plt.show()
 
+def show(imgs):
+    if not isinstance(imgs, list):
+        imgs = [imgs]
+    fig, axs = plt.subplots(ncols=len(imgs), squeeze=False)
+    for i, img in enumerate(imgs):
+        img = img.detach()
+        img = F.to_pil_image(img)
+        axs[0, i].imshow(np.asarray(img))
+        axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
+
 
 def get_dataloaders(data_config, use_cuda):
     valid_ratio = data_config["valid_ratio"]
     batch_size = data_config["batch_size"]
     num_workers = data_config["num_workers"]
+    resize = data_config["images_resize"]
 
     logging.info("  - Dataset creation")
 
     input_transform = transforms.Compose(
-        [transforms.Grayscale(), transforms.Resize((128, 128)), transforms.ToTensor()]
+        [transforms.Grayscale(),
+         transforms.Resize((resize, resize)),
+         transforms.ToTensor()]
     )
 
-    base_dataset = torchvision.datasets.Caltech101(
-        root=data_config["trainpath"],
-        download=True,
+    base_dataset = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"], 
         transform=input_transform,
     )
 
@@ -65,8 +81,35 @@ def get_dataloaders(data_config, use_cuda):
         num_workers=num_workers,
         pin_memory=use_cuda,
     )
-
-    num_classes = len(base_dataset.categories)
+    num_classes = len(base_dataset.classes)
     input_size = tuple(base_dataset[0][0].shape)
 
     return train_loader, valid_loader, input_size, num_classes
+
+
+def test_dataloaders():
+    print("_"*20)
+    print("Test dataloaders:")
+    
+    data_config = {
+        "trainpath": "./data/3-md-4040-2026-challenge/train",
+        "valid_ratio": 0.2,
+        "batch_size": 32,
+        "num_workers": 0,
+        "images_resize": 128
+    }
+    use_cuda = torch.cuda.is_available()
+
+    train_loader, valid_loader, input_size, num_classes = get_dataloaders(
+        data_config, use_cuda
+    )
+
+    X, y = next(iter(train_loader))
+    grid = make_grid(X, nrow=8)
+    show(grid)
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    test_dataloaders()
