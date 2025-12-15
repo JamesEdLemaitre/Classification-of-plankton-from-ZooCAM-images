@@ -6,7 +6,7 @@ import os
 # External imports
 import torch
 import torch.nn
-import tqdm
+from tqdm import tqdm
 
 
 def generate_unique_logpath(logdir, raw_run_name):
@@ -82,7 +82,7 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
 
     total_loss = 0
     num_samples = 0
-    pbar = tqdm.tqdm(loader, desc="Training", leave=False)
+    pbar = tqdm(loader, desc="Training", leave=False)
     
     for i, (inputs, targets) in enumerate(pbar):
 
@@ -125,8 +125,17 @@ def test(model, loader, f_loss, device):
 
     total_loss = 0
     num_samples = 0
+
+    pbar = tqdm(
+        loader,
+        desc="Validation",
+        unit="batch",
+        leave=False,  # ← Important : ne pas laisser la barre après
+        position=1     # ← Position 1 pour être sous la barre epoch
+    )
+
     with torch.no_grad():
-        for (inputs, targets) in loader:
+        for (inputs, targets) in pbar:
 
             inputs, targets = inputs.to(device), targets.to(device)
 
