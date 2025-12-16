@@ -1,3 +1,5 @@
+# RESULTAT 60.9 sur Kaggle
+
 data:
   trainpath: './data/train'
   testpath: './data/test'
@@ -11,7 +13,7 @@ optim:
   params:
     lr: 0.001
 
-nepochs: 30
+nepochs: 43
 loss: "CrossEntropyLoss"
 
 logging:
@@ -20,13 +22,13 @@ logging:
   #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/VanillaCNNV2_8/best_model.pt"  
+  model_path: "./logs/VanillaCNNV2_11/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"
   mode: "min"        
-  factor: 0.8        
-  patience: 5     
+  factor: 0.7        
+  patience: 4
   min_lr: 1.0e-6   
 
 
@@ -35,4 +37,4 @@ scheduler:
 model:
   class: VanillaCNNV2
   layer1_size : 32
-  num_layers : 4
+  num_layers : 5
