@@ -56,9 +56,9 @@ def VanillaCNNV2(cfg, input_size, num_classes):
     for i in range(cfg["num_layers"]):
         layers.extend(conv_relu_bn(cin, cout))
         layers.extend(conv_relu_bn(cout, cout))
-        layers.extend(conv_down(cout, 2 * cout))
-        cin = 2 * cout
-        cout = 2 * cout
+        layers.extend(conv_down(cout, cout))
+        cin = cout
+        cout = 2 * cin
     conv_model = nn.Sequential(*layers)
 
     # Compute the output size of the convolutional part

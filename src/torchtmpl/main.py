@@ -12,6 +12,8 @@ import wandb
 import torch
 import torchinfo.torchinfo as torchinfo
 from tqdm import tqdm
+from torchvision import transforms
+import torchvision
 
 # Local imports
 from . import data
@@ -108,6 +110,16 @@ def train(config):
     optim_config = config["optim"]
     optimizer = optim.get_optimizer(optim_config, model.parameters())
 
+    logging.info("= Learning Rate Scheduler")
+    if "scheduler" in config:
+        scheduler_config = config["scheduler"]
+        scheduler = optim.get_scheduler(scheduler_config, optimizer)
+        logging.info(f"  Using scheduler: {scheduler_config['class']}")
+    else:
+        scheduler = None
+        logging.info("  No scheduler specified")
+
+
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
         model, str(logdir / "best_model.pt"), min_is_best=True
@@ -129,6 +141,17 @@ def train(config):
         # Test
         test_loss, test_metrics = utils.test(model, valid_loader, loss, device)
 
+        if scheduler is not None:
+            # Différent selon le type de scheduler
+            if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                scheduler.step(test_loss)  
+            else:
+                scheduler.step()  
+            
+            # Log le learning rate actuel
+            current_lr = optimizer.param_groups[0]['lr']
+            logging.info(f"  Current LR: {current_lr:.6f}")
+
         updated = model_checkpoint.update(test_loss)
         logging.info(
             "[%d/%d] Test loss : %.3f %s | metrics: %s"
@@ -142,7 +165,7 @@ def train(config):
         )
 
         # Update the dashboard
-        metrics = {"train_CE": train_loss, "test_CE": test_loss, **test_metrics}
+        metrics = {"train_CE": train_loss, "test_CE": test_loss, **test_metrics, "learning_rate": optimizer.param_groups[0]['lr']}
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
@@ -151,6 +174,128 @@ def train(config):
 def test(config):
     device, use_cuda = get_device()
     print(f"Evaluating on device: {device}")
+
+    # Charger la configuration
+    data_config = config["data"]
+    model_config = config["model"]
+    test_path = data_config["testpath"]
+    train_path = data_config["trainpath"]
+    results_path = config["logging"].get("results_path", "./results")
+
+    # Créer le dossier de résultats
+    os.makedirs(results_path, exist_ok=True)
+
+    logging.info("= Loading test data")
+    
+    # Transformation identique au train (SANS augmentation)
+    resize = data_config["images_resize"]
+    test_transform = transforms.Compose([
+        transforms.Grayscale(),
+        transforms.Resize((resize, resize)),
+        transforms.ToTensor()
+    ])
+
+    logging.info("= Getting number of classes from training set")
+    train_dataset = torchvision.datasets.ImageFolder(
+        root=train_path,
+        transform=test_transform
+    )
+    num_classes = len(train_dataset.classes)
+    class_names = train_dataset.classes
+    logging.info(f"  - Number of classes: {num_classes}")
+    logging.info(f"  - Classes: {class_names}")
+
+    # Charger les images de test (sans labels)
+    test_dataset = torchvision.datasets.ImageFolder(
+        root=test_path,
+        transform=test_transform
+    )
+
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset,
+        batch_size=data_config["batch_size"],
+        shuffle=False, 
+        num_workers=data_config["num_workers"],
+        pin_memory=use_cuda
+    )
+
+    logging.info(f"  - Loaded {len(test_dataset)} test samples")
+    
+    # Charger le meilleur modèle
+    logging.info("= Loading best model")
+
+    if "model_path" in config["logging"]:
+        model_path = pathlib.Path(config["logging"]["model_path"])
+        logging.info(f"  - Using specified model: {model_path}")
+    else:
+        # Sinon, chercher le dernier dossier
+        logdir = config["logging"]["logdir"]
+        logdirs = sorted(pathlib.Path(logdir).glob("*"))
+        if not logdirs:
+            raise ValueError(f"No model found in {logdir}")
+        latest_logdir = logdirs[-1]
+        model_path = latest_logdir / "best_model.pt"
+        logging.info(f"  - Using latest model: {model_path}")
+    
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model not found: {model_path}")
+
+    logging.info(f"  - Loading model from {model_path}")
+    
+    # Reconstruire le modèle
+    input_size = tuple(test_dataset[0][0].shape)
+    model = models.build_model(model_config, input_size, num_classes)
+    
+    # Charger les poids
+    checkpoint = torch.load(model_path, map_location=device)
+    model.load_state_dict(checkpoint)
+    model = model.to(device)
+    model.eval()
+
+    logging.info("= Running inference")
+    
+    predictions = []
+    filenames = []
+    
+    with torch.no_grad():
+        for images, _ in tqdm(test_loader, desc="Inference", unit="batch"):
+            images = images.to(device)
+            outputs = model(images)
+            _, preds = torch.max(outputs, 1)
+            predictions.extend(preds.cpu().numpy())
+    
+    # Récupérer les noms de fichiers dans l'ordre
+    for idx in range(len(test_dataset)):
+        filepath = test_dataset.imgs[idx][0]
+        filename = os.path.basename(filepath)
+        filenames.append(filename)
+    
+    # Créer le DataFrame pour Kaggle
+    import pandas as pd
+    
+    results_df = pd.DataFrame({
+        'imgname': filenames,
+        'label': predictions
+    })
+    
+    # Sauvegarder
+    output_file = os.path.join(results_path, "submission.csv")
+    results_df.to_csv(output_file, index=False)
+    
+    logging.info(f"Results saved to {output_file}")
+    logging.info(f"  - Total predictions: {len(predictions)}")
+    logging.info(f"  - Unique classes predicted: {len(set(predictions))}")
+    
+    # Afficher la distribution des prédictions
+    logging.info("\n Prediction distribution:")
+    for class_idx in sorted(set(predictions)):
+        count = predictions.count(class_idx)
+        percentage = 100 * count / len(predictions)
+        class_name = test_dataset.classes[class_idx] if class_idx < len(test_dataset.classes) else f"Class_{class_idx}"
+        logging.info(f"  {class_name}: {count} ({percentage:.2f}%)")
+    
+    return output_file
+
 
 
 
