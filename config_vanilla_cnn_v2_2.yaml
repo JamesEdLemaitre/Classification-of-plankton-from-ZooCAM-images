@@ -1,0 +1,39 @@
+# Premier essai FocalLoss
+data:
+  trainpath: './data/train'
+  testpath: './data/test'
+  batch_size: 256
+  num_workers: 8
+  valid_ratio: 0.2
+  images_resize: 128
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.001
+
+nepochs: 50
+loss: "FocalLoss" # Tester d'autres
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs/VanillaCNNV2_11/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"        
+  factor: 0.7    
+  patience: 4
+  min_lr: 1.0e-6   
+
+
+# model:
+#   class: Linear
+model:
+  class: VanillaCNNV2
+  layer1_size : 16
+  num_layers : 5

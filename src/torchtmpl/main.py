@@ -21,7 +21,7 @@ from . import models
 from . import optim
 from . import utils
 
-def get_device():
+def get_device(gpu_id=None):
     if torch.cuda.is_available():
         device = torch.device("cuda")
         use_cuda = True
@@ -55,6 +55,20 @@ def train(config):
         data_config, use_cuda
     )
 
+    # Calculer les class weights pour gérer le déséquilibre
+    logging.info("= Computing class weights")
+    from sklearn.utils.class_weight import compute_class_weight
+    import numpy as np
+    
+    train_labels = [label for _, label in train_loader.dataset]
+    class_weights = compute_class_weight(
+        'balanced',
+        classes=np.unique(train_labels),
+        y=train_labels
+    )
+    class_weights = torch.FloatTensor(class_weights)
+    logging.info(f"  Class weights: {class_weights.numpy()}")
+
     # Build the model
     logging.info("= Model")
     model_config = config["model"]
@@ -63,7 +77,7 @@ def train(config):
 
     # Build the loss
     logging.info("= Loss")
-    loss = optim.get_loss(config["loss"])
+    loss = optim.get_loss(config["loss"], class_weights=class_weights, device=device)
 
     # Build the callbacks
     logging_config = config["logging"]

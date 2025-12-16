@@ -2,3 +2,4 @@
 data/*
 logs/*.pth
 logs/*.pt
+denoising/processed_data/*

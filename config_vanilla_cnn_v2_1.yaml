@@ -12,7 +12,7 @@ optim:
     lr: 0.001
 
 nepochs: 50
-loss: "CrossEntropyLoss"
+loss: "CrossEntropyLoss" # Tester d'autres
 
 logging:
   # wandb: 
