@@ -20,9 +20,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude logslurms --exclude configs --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id c204eea516db8efc1b094254ec250f605a23f324"
+echo "Checking out the correct version of the code commit_id 407593f8482ed625a421a1c283cf78d19f739a4b"
 cd $TMPDIR/code
-git checkout c204eea516db8efc1b094254ec250f605a23f324
+git checkout 407593f8482ed625a421a1c283cf78d19f739a4b
 
 echo "Setting up the virtual environment"
 python3 -m venv venv
