@@ -1,5 +1,5 @@
 data:
-  trainpath: '/mounts/datasets/datasets/2025-2026-ChallengePlankton'  
+  trainpath: '/mounts/datasets/datasets/2025-ZooCamChallenge'  
   batch_size: 256
   num_workers: 4
   valid_ratio: 0.2
