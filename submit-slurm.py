@@ -96,7 +96,10 @@ else:
 
 # Copy the config in a temporary config file
 os.system("mkdir -p configs")
-tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")[1]
+# Copy the config in a temporary config file
+os.system("mkdir -p configs")
+fd, tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")
+os.close(fd)
 os.system(f"cp {configpath} {tmp_configfilepath}")
 
 # Launch the batch jobs

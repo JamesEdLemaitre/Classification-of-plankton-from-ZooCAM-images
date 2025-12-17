@@ -21,11 +21,11 @@ mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
 
 echo "Copying the config file"
-cp /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/pytorch_template_code-main/configs/tmphv5qegsy-config.yml $TMPDIR/code/config_to_use.yaml
+cp /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/pytorch_template_code-main/configs/tmpe3g9cyu9-config.yml $TMPDIR/code/config_to_use.yaml
 
-echo "Checking out the correct version of the code commit_id e7de01f002a9ca532a29ddb4a22c3543462bc8a5"
+echo "Checking out the correct version of the code commit_id 20cb5d63bab6d96014e1a7c5472ec95002757c01"
 cd $TMPDIR/code
-git checkout e7de01f002a9ca532a29ddb4a22c3543462bc8a5
+git checkout 20cb5d63bab6d96014e1a7c5472ec95002757c01
 
 
 echo "Setting up the virtual environment"
