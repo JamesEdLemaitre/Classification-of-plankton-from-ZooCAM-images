@@ -18,11 +18,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude logslurms --exclude configs --exclude .git --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
+rsync -r --exclude logs --exclude logslurms --exclude configs --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 6fd254b6560dcd30d60af87e6981216ab73c3f23"
+echo "Checking out the correct version of the code commit_id b5f7af7e08f1c9141b2054a25626cd2201e35e9d"
 cd $TMPDIR/code
-git checkout 6fd254b6560dcd30d60af87e6981216ab73c3f23
+git checkout b5f7af7e08f1c9141b2054a25626cd2201e35e9d
 
 echo "Setting up the virtual environment"
 python3 -m venv venv
