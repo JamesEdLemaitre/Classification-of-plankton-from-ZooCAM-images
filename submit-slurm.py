@@ -27,15 +27,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
-
-echo "Copying the config file"
-cp {configpath} $TMPDIR/code/config_to_use.yaml
+rsync -r --exclude logs --exclude logslurms --exclude configs --exclude .git --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
 
 echo "Checking out the correct version of the code commit_id {commit_id}"
 cd $TMPDIR/code
 git checkout {commit_id}
-
 
 echo "Setting up the virtual environment"
 python3 -m venv venv
@@ -45,7 +41,7 @@ source venv/bin/activate
 python -m pip install .
 
 echo "Training"
-python -m torchtmpl.main config_to_use.yaml train
+python -m torchtmpl.main {configpath} train
 
 if [[ $? != 0 ]]; then
     exit -1
@@ -94,13 +90,5 @@ if len(sys.argv) == 2:
 else:
     nruns = int(sys.argv[2])
 
-# Copy the config in a temporary config file
-os.system("mkdir -p configs")
-# Copy the config in a temporary config file
-os.system("mkdir -p configs")
-fd, tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")
-os.close(fd)
-os.system(f"cp {configpath} {tmp_configfilepath}")
-
 # Launch the batch jobs
-submit_job(makejob(commit_id, tmp_configfilepath, nruns))
+submit_job(makejob(commit_id, configpath, nruns))
