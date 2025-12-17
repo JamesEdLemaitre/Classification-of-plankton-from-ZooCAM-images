@@ -20,9 +20,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude logslurms --exclude configs --exclude .git --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id d067336ff63e555072f4efa4a2059476a3a6636c"
+echo "Checking out the correct version of the code commit_id 6fd254b6560dcd30d60af87e6981216ab73c3f23"
 cd $TMPDIR/code
-git checkout d067336ff63e555072f4efa4a2059476a3a6636c
+git checkout 6fd254b6560dcd30d60af87e6981216ab73c3f23
 
 echo "Setting up the virtual environment"
 python3 -m venv venv
@@ -32,7 +32,7 @@ source venv/bin/activate
 python -m pip install .
 
 echo "Training"
-python -m torchtmpl.main config-sample.yaml train
+python -m torchtmpl.main config-local.yaml train
 
 if [[ $? != 0 ]]; then
     exit -1
