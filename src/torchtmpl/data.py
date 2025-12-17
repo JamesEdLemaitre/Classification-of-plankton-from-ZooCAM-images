@@ -341,11 +341,31 @@ def get_dataloaders(data_config, use_cuda):
 
     logging.info(f"  - I loaded {len(base_dataset)} samples")
 
-    # Calculer les poids pour chaque classe
-    targets = [label for _, label in base_dataset]
-    class_counts = np.bincount(targets)
-    class_weights = 1.0 / class_counts
-    sample_weights = [class_weights[label] for label in targets]
+    # ══════════════════════════════════════════════════════════════
+    # CALCUL RAPIDE ET UNIQUE DES CLASS WEIGHTS
+    # ══════════════════════════════════════════════════════════════
+    logging.info("  - Computing class weights")
+    
+    # Accès direct aux targets (RAPIDE: 2-3 secondes)
+    targets = np.array(base_dataset.targets)  # ← Pas d'itération !
+    
+    # Compter les occurrences
+    unique_classes, class_counts = np.unique(targets, return_counts=True)
+    
+    # Formule "balanced" (comme sklearn)
+    total_samples = len(targets)
+    num_classes = len(unique_classes)
+    class_weights_array = total_samples / (num_classes * class_counts)
+    
+    # Convertir en torch pour la loss
+    class_weights_torch = torch.FloatTensor(class_weights_array)
+    
+    # Créer les sample weights pour le sampler
+    sample_weights = class_weights_array[targets]
+    
+    # Logs informatifs
+    logging.info(f"    Classes: {num_classes}, Samples: {total_samples:,}")
+    logging.info(f"    Weights range: [{class_weights_array.min():.4f}, {class_weights_array.max():.4f}]")
 
     indices = list(range(len(base_dataset)))
     random.shuffle(indices)
@@ -360,7 +380,7 @@ def get_dataloaders(data_config, use_cuda):
     train_weights = [sample_weights[i] for i in train_indices]
     sampler = WeightedRandomSampler(
         weights=train_weights,
-        num_samples=len(train_weights)//5,
+        num_samples=len(train_weights)//6,
         replacement=True
     )
     train_loader = torch.utils.data.DataLoader(
@@ -381,7 +401,7 @@ def get_dataloaders(data_config, use_cuda):
     num_classes = len(base_dataset.classes)
     input_size = tuple(base_dataset[0][0].shape)
 
-    return train_loader, valid_loader, input_size, num_classes
+    return train_loader, valid_loader, input_size, num_classes, class_weights_torch
 
 
 def test_dataloaders():

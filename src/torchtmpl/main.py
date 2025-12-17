@@ -51,23 +51,24 @@ def train(config):
     logging.info("= Building the dataloaders")
     data_config = config["data"]
 
-    train_loader, valid_loader, input_size, num_classes = data.get_dataloaders(
+    train_loader, valid_loader, input_size, num_classes, class_weights = data.get_dataloaders(
         data_config, use_cuda
     )
-
-    # Calculer les class weights pour gérer le déséquilibre
-    logging.info("= Computing class weights")
-    from sklearn.utils.class_weight import compute_class_weight
-    import numpy as np
+    class_weights = class_weights.to(device)
     
-    train_labels = [label for _, label in train_loader.dataset]
-    class_weights = compute_class_weight(
-        'balanced',
-        classes=np.unique(train_labels),
-        y=train_labels
-    )
-    class_weights = torch.FloatTensor(class_weights)
-    logging.info(f"  Class weights: {class_weights.numpy()}")
+    # Calculer les class weights pour gérer le déséquilibre
+    # logging.info("= Computing class weights")
+    # from sklearn.utils.class_weight import compute_class_weight
+    # import numpy as np
+    
+    # train_labels = [label for _, label in train_loader.dataset]
+    # class_weights = compute_class_weight(
+    #     'balanced',
+    #     classes=np.unique(train_labels),
+    #     y=train_labels
+    # )
+    # class_weights = torch.FloatTensor(class_weights)
+    # logging.info(f"  Class weights: {class_weights.numpy()}")
 
     # Build the model
     logging.info("= Model")
@@ -212,8 +213,6 @@ def test(config):
     
     transform_list.extend([
         transforms.Resize((resize, resize)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
         transforms.ToTensor()
     ])
 
