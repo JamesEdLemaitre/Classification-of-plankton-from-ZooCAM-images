@@ -195,6 +195,7 @@ def test(config):
     test_path = data_config["testpath"]
     train_path = data_config["trainpath"]
     results_path = config["logging"].get("results_path", "./results")
+    use_rgb = data_config.get("rgb", False)
 
     # Créer le dossier de résultats
     os.makedirs(results_path, exist_ok=True)
@@ -203,16 +204,25 @@ def test(config):
     
     # Transformation identique au train (SANS augmentation)
     resize = data_config["images_resize"]
-    test_transform = transforms.Compose([
-        transforms.Grayscale(),
+    transform_list = []
+    
+    if not use_rgb:
+        transform_list.append(transforms.Grayscale())  # 1 canal
+    # Sinon, reste en RGB natif (3 canaux)
+    
+    transform_list.extend([
         transforms.Resize((resize, resize)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(15),
         transforms.ToTensor()
     ])
+
+    transform_list = transforms.Compose(transform_list)
 
     logging.info("= Getting number of classes from training set")
     train_dataset = torchvision.datasets.ImageFolder(
         root=train_path,
-        transform=test_transform
+        transform=transform_list
     )
     num_classes = len(train_dataset.classes)
     class_names = train_dataset.classes
@@ -222,7 +232,7 @@ def test(config):
     # Charger les images de test (sans labels)
     test_dataset = torchvision.datasets.ImageFolder(
         root=test_path,
-        transform=test_transform
+        transform=transform_list
     )
 
     test_loader = torch.utils.data.DataLoader(

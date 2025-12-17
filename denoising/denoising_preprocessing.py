@@ -269,7 +269,7 @@ class RestormerDenoiser:
         print(f"\n Denoising terminé ! Résultats dans {output_dir}")
 
 
-def main():
+def main_train():
     """
     Denoise toutes les classes du dataset train
     """
@@ -371,6 +371,81 @@ def main():
     
     print(f" - Images traitées : {total_images}")
 
+def main_test():
+    """
+    Denoise toutes les images du dataset test (pas de sous-dossiers)
+    """
+    # Configuration des chemins
+    INPUT_DIR = '/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi/data/test/imgs'
+    OUTPUT_DIR = '/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi/denoising/preprocessed_data/test'
+    WEIGHTS_PATH = '/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi/denoising/Restormer/Denoising/pretrained_models/real_denoising.pth'
+    
+    # Options de denoising
+    USE_TILES = False  # True pour grandes images (> 2000x2000)
+    TILE_SIZE = 720    # Taille des tiles si USE_TILES=True
+    TILE_OVERLAP = 32  # Chevauchement entre tiles
+    
+    # Vérifier que le dossier source existe
+    if not os.path.exists(INPUT_DIR):
+        raise ValueError(f"❌ Le dossier {INPUT_DIR} n'existe pas !")
+    
+    # Compter les images dans le dossier test
+    extensions = ['jpg', 'JPG', 'png', 'PNG', 'jpeg', 'JPEG', 'bmp', 'BMP']
+    image_files = []
+    for ext in extensions:
+        image_files.extend(glob(os.path.join(INPUT_DIR, f'*.{ext}')))
+    
+    num_images = len(image_files)
+    
+    if num_images == 0:
+        raise ValueError(f"❌ Aucune image trouvée dans {INPUT_DIR}")
+    
+    print(f"📊 {num_images} images de test trouvées")
+    print(f"📁 Source : {INPUT_DIR}")
+    print(f"💾 Sortie : {OUTPUT_DIR}\n")
+    
+    # Créer le dossier de sortie
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
+    # Initialiser le denoiser
+    print("🔧 Initialisation du modèle Restormer...")
+    denoiser = RestormerDenoiser(
+        weights_path=WEIGHTS_PATH,
+        device=None  # Auto-detect (cuda si disponible)
+    )
+    print()
+    
+    print(f"{'='*70}")
+    print(f"🚀 DÉMARRAGE DU DENOISING DES IMAGES DE TEST")
+    print(f"{'='*70}\n")
+    
+    try:
+        # Denoise toutes les images du dossier test
+        denoiser.denoise_folder(
+            input_dir=INPUT_DIR,
+            output_dir=OUTPUT_DIR,
+            tile_size=TILE_SIZE if USE_TILES else None,
+            tile_overlap=TILE_OVERLAP
+        )
+        
+        print(f"\n{'='*70}")
+        print(f"✅ DENOISING TERMINÉ !")
+        print(f"{'='*70}")
+        print(f"💾 Données nettoyées disponibles dans :")
+        print(f"   {OUTPUT_DIR}")
+        
+        # Compter le nombre d'images traitées
+        output_images = []
+        for ext in extensions:
+            output_images.extend(glob(os.path.join(OUTPUT_DIR, f'*.{ext}')))
+        
+        print(f"\n📊 Résumé :")
+        print(f"   - Images traitées : {len(output_images)}/{num_images}")
+        
+    except Exception as e:
+        print(f"\n❌ Erreur lors du traitement : {e}")
+        raise
 
 if __name__ == '__main__':
-    main()
+    main_test()
+

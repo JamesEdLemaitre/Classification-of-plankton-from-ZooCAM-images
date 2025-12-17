@@ -58,22 +58,281 @@ def show_class_distribution(dataset, results_save_path = "./data_analysis"):
     for cls, count in zip(classes, counts):
         print(f"{cls}: {count}")
 
+def show_images_information(dataset, results_save_path="./data_analysis"):
+    """
+    Analyse les dimensions des images du dataset et génère des statistiques
+    par classe et globales. Sauvegarde tout dans results_save_path.
+    """
+    import os
+    from collections import defaultdict
+    from PIL import Image
+    
+    os.makedirs(results_save_path, exist_ok=True)
+    
+    print("📊 Analyzing image dimensions...")
+    
+    # Structures pour stocker les infos
+    all_widths = []
+    all_heights = []
+    all_ratios = []
+    
+    class_stats = defaultdict(lambda: {
+        'widths': [],
+        'heights': [],
+        'ratios': [],
+        'count': 0
+    })
+    
+    # Parcourir toutes les images
+    for idx, (img_tensor, label) in enumerate(dataset):
+        # Récupérer l'image PIL originale (avant transform)
+        img_path, _ = dataset.imgs[idx]
+        img = Image.open(img_path)
+        width, height = img.size
+        ratio = width / height
+        
+        # Stats globales
+        all_widths.append(width)
+        all_heights.append(height)
+        all_ratios.append(ratio)
+        
+        # Stats par classe
+        class_name = dataset.classes[label]
+        class_stats[class_name]['widths'].append(width)
+        class_stats[class_name]['heights'].append(height)
+        class_stats[class_name]['ratios'].append(ratio)
+        class_stats[class_name]['count'] += 1
+        
+        if (idx + 1) % 10000 == 0:
+            print(f"  Processed {idx + 1}/{len(dataset)} images...")
+    
+    print(f"✅ Analyzed {len(dataset)} images\n")
+    
+    # ═══════════════════════════════════════════════════════
+    # 1. STATISTIQUES GLOBALES
+    # ═══════════════════════════════════════════════════════
+    
+    with open(f"{results_save_path}/images_stats.txt", 'w') as f:
+        f.write("="*60 + "\n")
+        f.write("GLOBAL IMAGE STATISTICS\n")
+        f.write("="*60 + "\n\n")
+        
+        f.write(f"Total images: {len(dataset)}\n\n")
+        
+        f.write("WIDTH:\n")
+        f.write(f"  Min:    {min(all_widths)} px\n")
+        f.write(f"  Max:    {max(all_widths)} px\n")
+        f.write(f"  Mean:   {np.mean(all_widths):.1f} px\n")
+        f.write(f"  Median: {np.median(all_widths):.1f} px\n")
+        f.write(f"  Std:    {np.std(all_widths):.1f} px\n\n")
+        
+        f.write("HEIGHT:\n")
+        f.write(f"  Min:    {min(all_heights)} px\n")
+        f.write(f"  Max:    {max(all_heights)} px\n")
+        f.write(f"  Mean:   {np.mean(all_heights):.1f} px\n")
+        f.write(f"  Median: {np.median(all_heights):.1f} px\n")
+        f.write(f"  Std:    {np.std(all_heights):.1f} px\n\n")
+        
+        f.write("ASPECT RATIO (width/height):\n")
+        f.write(f"  Min:    {min(all_ratios):.3f}\n")
+        f.write(f"  Max:    {max(all_ratios):.3f}\n")
+        f.write(f"  Mean:   {np.mean(all_ratios):.3f}\n")
+        f.write(f"  Median: {np.median(all_ratios):.3f}\n")
+        f.write(f"  Std:    {np.std(all_ratios):.3f}\n\n")
+        
+        # Catégorisation des ratios
+        portrait = sum(1 for r in all_ratios if r < 0.95)
+        square = sum(1 for r in all_ratios if 0.95 <= r <= 1.05)
+        landscape = sum(1 for r in all_ratios if r > 1.05)
+        
+        f.write("ORIENTATION:\n")
+        f.write(f"  Portrait (ratio < 0.95):  {portrait:6d} ({100*portrait/len(all_ratios):5.2f}%)\n")
+        f.write(f"  Square (0.95 ≤ ratio ≤ 1.05): {square:6d} ({100*square/len(all_ratios):5.2f}%)\n")
+        f.write(f"  Landscape (ratio > 1.05): {landscape:6d} ({100*landscape/len(all_ratios):5.2f}%)\n\n")
+        
+        # ═══════════════════════════════════════════════════════
+        # 2. STATISTIQUES PAR CLASSE
+        # ═══════════════════════════════════════════════════════
+        
+        f.write("\n" + "="*60 + "\n")
+        f.write("STATISTICS BY CLASS\n")
+        f.write("="*60 + "\n\n")
+        
+        for class_name in sorted(class_stats.keys()):
+            stats = class_stats[class_name]
+            f.write(f"\n{'─'*60}\n")
+            f.write(f"CLASS: {class_name}\n")
+            f.write(f"{'─'*60}\n")
+            f.write(f"Count: {stats['count']}\n\n")
+            
+            f.write("Width:\n")
+            f.write(f"  Min: {min(stats['widths'])} | Max: {max(stats['widths'])} | ")
+            f.write(f"Mean: {np.mean(stats['widths']):.1f} | Std: {np.std(stats['widths']):.1f}\n")
+            
+            f.write("Height:\n")
+            f.write(f"  Min: {min(stats['heights'])} | Max: {max(stats['heights'])} | ")
+            f.write(f"Mean: {np.mean(stats['heights']):.1f} | Std: {np.std(stats['heights']):.1f}\n")
+            
+            f.write("Aspect Ratio:\n")
+            f.write(f"  Min: {min(stats['ratios']):.3f} | Max: {max(stats['ratios']):.3f} | ")
+            f.write(f"Mean: {np.mean(stats['ratios']):.3f} | Std: {np.std(stats['ratios']):.3f}\n")
+    
+    print(f"📄 Saved text stats to: {results_save_path}/images_stats.txt")
+    
+    # ═══════════════════════════════════════════════════════
+    # 3. VISUALISATIONS GLOBALES
+    # ═══════════════════════════════════════════════════════
+    
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    
+    # Histogramme des largeurs
+    axes[0, 0].hist(all_widths, bins=50, edgecolor='black', alpha=0.7)
+    axes[0, 0].set_title('Width Distribution', fontsize=14, fontweight='bold')
+    axes[0, 0].set_xlabel('Width (pixels)')
+    axes[0, 0].set_ylabel('Frequency')
+    axes[0, 0].axvline(np.mean(all_widths), color='r', linestyle='--', label=f'Mean: {np.mean(all_widths):.0f}')
+    axes[0, 0].legend()
+    
+    # Histogramme des hauteurs
+    axes[0, 1].hist(all_heights, bins=50, edgecolor='black', alpha=0.7, color='orange')
+    axes[0, 1].set_title('Height Distribution', fontsize=14, fontweight='bold')
+    axes[0, 1].set_xlabel('Height (pixels)')
+    axes[0, 1].set_ylabel('Frequency')
+    axes[0, 1].axvline(np.mean(all_heights), color='r', linestyle='--', label=f'Mean: {np.mean(all_heights):.0f}')
+    axes[0, 1].legend()
+    
+    # Histogramme des ratios
+    axes[0, 2].hist(all_ratios, bins=50, edgecolor='black', alpha=0.7, color='green')
+    axes[0, 2].set_title('Aspect Ratio Distribution', fontsize=14, fontweight='bold')
+    axes[0, 2].set_xlabel('Aspect Ratio (W/H)')
+    axes[0, 2].set_ylabel('Frequency')
+    axes[0, 2].axvline(1.0, color='r', linestyle='--', label='Square (1.0)')
+    axes[0, 2].axvline(np.mean(all_ratios), color='purple', linestyle='--', label=f'Mean: {np.mean(all_ratios):.2f}')
+    axes[0, 2].legend()
+    
+    # Scatter plot Width vs Height
+    axes[1, 0].scatter(all_widths, all_heights, alpha=0.3, s=1)
+    axes[1, 0].set_title('Width vs Height', fontsize=14, fontweight='bold')
+    axes[1, 0].set_xlabel('Width (pixels)')
+    axes[1, 0].set_ylabel('Height (pixels)')
+    axes[1, 0].plot([0, max(all_widths)], [0, max(all_widths)], 'r--', label='Square (W=H)')
+    axes[1, 0].legend()
+    
+    # Box plot des dimensions
+    axes[1, 1].boxplot([all_widths, all_heights], labels=['Width', 'Height'])
+    axes[1, 1].set_title('Dimensions Box Plot', fontsize=14, fontweight='bold')
+    axes[1, 1].set_ylabel('Pixels')
+    
+    # Pie chart des orientations
+    orientations = [portrait, square, landscape]
+    labels = [f'Portrait\n({portrait})', f'Square\n({square})', f'Landscape\n({landscape})']
+    colors = ['#ff9999', '#66b3ff', '#99ff99']
+    axes[1, 2].pie(orientations, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
+    axes[1, 2].set_title('Image Orientations', fontsize=14, fontweight='bold')
+    
+    plt.tight_layout()
+    plt.savefig(f"{results_save_path}/images_dimensions_global.png", dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"📊 Saved global plots to: {results_save_path}/images_dimensions_global.png")
+    
+    # ═══════════════════════════════════════════════════════
+    # 4. VISUALISATIONS PAR CLASSE (aspect ratios)
+    # ═══════════════════════════════════════════════════════
+    
+    num_classes = len(class_stats)
+    fig, axes = plt.subplots(num_classes, 1, figsize=(12, 4 * num_classes))
+    
+    if num_classes == 1:
+        axes = [axes]
+    
+    for idx, class_name in enumerate(sorted(class_stats.keys())):
+        stats = class_stats[class_name]
+        
+        axes[idx].hist(stats['ratios'], bins=30, edgecolor='black', alpha=0.7)
+        axes[idx].set_title(f"Class: {class_name} (n={stats['count']})", fontsize=12, fontweight='bold')
+        axes[idx].set_xlabel('Aspect Ratio (W/H)')
+        axes[idx].set_ylabel('Frequency')
+        axes[idx].axvline(np.mean(stats['ratios']), color='r', linestyle='--', 
+                         label=f"Mean: {np.mean(stats['ratios']):.2f}")
+        axes[idx].axvline(1.0, color='green', linestyle=':', label='Square (1.0)')
+        axes[idx].legend()
+        axes[idx].grid(alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(f"{results_save_path}/images_ratios_by_class.png", dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"📊 Saved class plots to: {results_save_path}/images_ratios_by_class.png")
+    
+    # ═══════════════════════════════════════════════════════
+    # 5. HEATMAP DES DIMENSIONS PAR CLASSE
+    # ═══════════════════════════════════════════════════════
+    
+    class_names_sorted = sorted(class_stats.keys())
+    mean_widths = [np.mean(class_stats[c]['widths']) for c in class_names_sorted]
+    mean_heights = [np.mean(class_stats[c]['heights']) for c in class_names_sorted]
+    mean_ratios = [np.mean(class_stats[c]['ratios']) for c in class_names_sorted]
+    
+    fig, axes = plt.subplots(1, 3, figsize=(18, max(6, num_classes * 0.4)))
+    
+    # Mean Width
+    axes[0].barh(class_names_sorted, mean_widths, color='steelblue')
+    axes[0].set_xlabel('Mean Width (pixels)')
+    axes[0].set_title('Average Width by Class', fontweight='bold')
+    axes[0].grid(axis='x', alpha=0.3)
+    
+    # Mean Height
+    axes[1].barh(class_names_sorted, mean_heights, color='coral')
+    axes[1].set_xlabel('Mean Height (pixels)')
+    axes[1].set_title('Average Height by Class', fontweight='bold')
+    axes[1].grid(axis='x', alpha=0.3)
+    
+    # Mean Ratio
+    axes[2].barh(class_names_sorted, mean_ratios, color='seagreen')
+    axes[2].set_xlabel('Mean Aspect Ratio (W/H)')
+    axes[2].set_title('Average Aspect Ratio by Class', fontweight='bold')
+    axes[2].axvline(1.0, color='red', linestyle='--', label='Square (1.0)')
+    axes[2].legend()
+    axes[2].grid(axis='x', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(f"{results_save_path}/images_dimensions_by_class.png", dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"📊 Saved class comparison to: {results_save_path}/images_dimensions_by_class.png")
+    
+    print(f"\n✅ All analysis saved in: {results_save_path}/")
+    print(f"   - images_stats.txt (detailed statistics)")
+    print(f"   - images_dimensions_global.png (global distributions)")
+    print(f"   - images_ratios_by_class.png (ratios per class)")
+    print(f"   - images_dimensions_by_class.png (comparison by class)")
+
+
 
 def get_dataloaders(data_config, use_cuda):
     valid_ratio = data_config["valid_ratio"]
     batch_size = data_config["batch_size"]
     num_workers = data_config["num_workers"]
     resize = data_config["images_resize"]
+    use_rgb = data_config.get("rgb", False)
 
     logging.info("  - Dataset creation")
 
-    input_transform = transforms.Compose(
-        [transforms.Grayscale(),
-         transforms.Resize((resize, resize)),
-         transforms.RandomHorizontalFlip(p=0.5),
-         transforms.RandomRotation(15),
-         transforms.ToTensor()]
-    )
+    transform_list = []
+    
+    if not use_rgb:
+        transform_list.append(transforms.Grayscale())  # 1 canal
+    # Sinon, reste en RGB natif (3 canaux)
+    
+    transform_list.extend([
+        transforms.Resize((resize, resize)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(15),
+        transforms.ToTensor()
+    ])
+
+    input_transform = transforms.Compose(transform_list)
 
     base_dataset = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"], 
@@ -160,6 +419,8 @@ def test_dataloaders():
         transform=transforms.ToTensor()
     )
     show_class_distribution(base_dataset, results_save_path = "./data_analysis")
+
+    show_images_information(base_dataset, results_save_path="./data_analysis")
 
     X, y = next(iter(train_loader))
     grid = make_grid(X, nrow=8)
