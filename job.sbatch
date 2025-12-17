@@ -18,15 +18,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
+rsync -r --exclude logs --exclude logslurms --exclude configs --exclude .git --exclude __pycache__ --exclude "*.pyc" --exclude venv . $TMPDIR/code
 
-echo "Copying the config file"
-cp /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/pytorch_template_code-main/configs/tmpiph9xhln-config.yml $TMPDIR/code/config_to_use.yaml
-
-echo "Checking out the correct version of the code commit_id ce54d0db6ab4fe7c6b96b0e4f10a9c113fb1d4a8"
+echo "Checking out the correct version of the code commit_id 124769939d1c0f4e57e5167dff1f0354f1e603a9"
 cd $TMPDIR/code
-git checkout ce54d0db6ab4fe7c6b96b0e4f10a9c113fb1d4a8
-
+git checkout 124769939d1c0f4e57e5167dff1f0354f1e603a9
 
 echo "Setting up the virtual environment"
 python3 -m venv venv
@@ -36,7 +32,7 @@ source venv/bin/activate
 python -m pip install .
 
 echo "Training"
-python -m torchtmpl.main config_to_use.yaml train
+python -m torchtmpl.main config-sample.yaml train
 
 if [[ $? != 0 ]]; then
     exit -1
