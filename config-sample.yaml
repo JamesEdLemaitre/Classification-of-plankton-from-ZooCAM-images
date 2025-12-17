@@ -1,6 +1,5 @@
 data:
-  trainpath: '/opt/Datasets/'
-  # testpath: '/dummy/path/to/test'
+  trainpath: './data/'  # Chemin relatif accessible
   batch_size: 256
   num_workers: 4
   valid_ratio: 0.2
