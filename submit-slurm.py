@@ -29,6 +29,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
 
+echo "Copying the config file"
+cp {configpath} $TMPDIR/code/config_to_use.yaml
+
 echo "Checking out the correct version of the code commit_id {commit_id}"
 cd $TMPDIR/code
 git checkout {commit_id}
@@ -42,7 +45,7 @@ source venv/bin/activate
 python -m pip install .
 
 echo "Training"
-python -m torchtmpl.main {configpath} train
+python -m torchtmpl.main config_to_use.yaml train
 
 if [[ $? != 0 ]]; then
     exit -1
