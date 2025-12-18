@@ -18,3 +18,4 @@ Questionnements:
 
 - Post-processing possible ? Pas sûr de la pertinence pour ce challenge mais à regarder
 
+- Preprocessing: faire quelque chose avec l'orientation des images, surtout si on n'utilise pas un modèle pré-entraîné qui prend des images carrées en entrée: voir analyse du dataset par classe, il y a quelque chose à faire déjà en mettante toutes les images horizontalement au lieu d'avoir un mélange vertical/horizontal. ça peut permettre, par exemple de resize en 128x256 ou autre pour garder plus d'infos de la dimension en longueur. Tenter aussi peut-être d'annoter manuellement des données pour réorienter ? Ou pour laver automatiquement les artéfacts ? 

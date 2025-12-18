@@ -1,3 +1,5 @@
+# Got 74%
+
 data:
   trainpath: './data/train'
   testpath: './data/test'
@@ -10,7 +12,7 @@ data:
 optim:
   algo: AdamW
   params:
-    lr: 0.001
+    lr: 0.0001 # Changer avec un zero de plus pour voir 
 
 nepochs: 100
 loss: "CrossEntropyLoss" # Tester d'autres
@@ -21,7 +23,7 @@ logging:
   #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/DINOv3Classifier_3/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs/DINOv3Classifier_8/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"
@@ -36,7 +38,7 @@ scheduler:
 model:
   class: DINOv3Classifier
   model_size: small
-  freeze_backbone: true
+  freeze_backbone: false
   head_hidden_dims: [512, 256]
   dropout: 0.1
 
