@@ -7,6 +7,8 @@ import tempfile
 
 
 def makejob(commit_id, configpath, nruns):
+    # Utiliser seulement le nom du fichier
+    config_filename = os.path.basename(configpath)
     return f"""#!/bin/bash
 
 #SBATCH --job-name=templatecode
@@ -27,7 +29,7 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
+rsync -r --exclude logs --exclude logslurms . $TMPDIR/code
 
 echo "Checking out the correct version of the code commit_id {commit_id}"
 cd $TMPDIR/code
@@ -41,8 +43,9 @@ source venv/bin/activate
 # Install the library
 python -m pip install .
 
+
 echo "Training"
-python -m torchtmpl.main {configpath} train
+python -m torchtmpl.main configs/{config_filename} train
 
 if [[ $? != 0 ]]; then
     exit -1
@@ -94,7 +97,8 @@ else:
 # Copy the config in a temporary config file
 os.system("mkdir -p configs")
 tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")[1]
-os.system(f"cp {configpath} {tmp_configfilepath}")
+os.system(f'cp "{configpath}" "{tmp_configfilepath}"')
 
 # Launch the batch jobs
 submit_job(makejob(commit_id, tmp_configfilepath, nruns))
+
