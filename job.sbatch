@@ -18,11 +18,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
+rsync -r --exclude logs --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 4d314d5cf3f53b09001bb64a836c1b27872bb077"
+echo "Checking out the correct version of the code commit_id 179c53f46610f471657442fa824b773ed268eb3d"
 cd $TMPDIR/code
-git checkout 4d314d5cf3f53b09001bb64a836c1b27872bb077
+git checkout 179c53f46610f471657442fa824b773ed268eb3d
 
 
 echo "Setting up the virtual environment"
@@ -32,8 +32,9 @@ source venv/bin/activate
 # Install the library
 python -m pip install .
 
+
 echo "Training"
-python -m torchtmpl.main /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/configs/tmpybelu8as-config.yml train
+python -m torchtmpl.main configs/tmpdkwuqyhc-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
