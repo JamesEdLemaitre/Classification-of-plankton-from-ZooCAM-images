@@ -1,10 +1,7 @@
-[build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "torchtmpl"
 version = "0.0.1"
+
 dependencies = [
     "PyYAML>=6.0",
     "torch>=1.13.1",
@@ -13,9 +10,9 @@ dependencies = [
     "wandb>=0.13.11",
     "scipy>=1.10.1",
     "tqdm>=4.65.0",
-    "matplotlib>=3.7.1",
+    "matplotlib>=3.7.1", 
     "timm==1.0.22"
 ]
 
-[tool.setuptools]
-packages = ["torchtmpl"]
+[options]
+package_dir = "torchtmpl"
