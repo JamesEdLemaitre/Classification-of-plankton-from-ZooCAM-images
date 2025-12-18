@@ -20,9 +20,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude logslurms --exclude configs . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id eeeae248b739b5d77425c5c3e7aabb94286fff87"
+echo "Checking out the correct version of the code commit_id 4fe8d8a2fb5b23748bc55f4246d55613eef6ff9c"
 cd $TMPDIR/code
-git checkout eeeae248b739b5d77425c5c3e7aabb94286fff87
+git checkout 4fe8d8a2fb5b23748bc55f4246d55613eef6ff9c
 
 
 echo "Setting up the virtual environment"
@@ -34,7 +34,7 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/configs/tmp81xtuj6g-config.yml train
+python -m torchtmpl.main /usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/configs/tmpvc64klft-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
