@@ -97,7 +97,7 @@ else:
 # Copy the config in a temporary config file
 os.system("mkdir -p configs")
 tmp_configfilepath = tempfile.mkstemp(dir="./configs", suffix="-config.yml")[1]
-os.system(f"cp {configpath} {tmp_configfilepath}")
+os.system(f'cp "{configpath}" "{tmp_configfilepath}"')
 
 # Launch the batch jobs
 submit_job(makejob(commit_id, tmp_configfilepath, nruns))
