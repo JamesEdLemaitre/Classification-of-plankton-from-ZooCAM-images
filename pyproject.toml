@@ -14,7 +14,8 @@ dependencies = [
     "scipy>=1.10.1",
     "tqdm>=4.65.0",
     "matplotlib>=3.7.1",
-    "timm==1.0.22"
+    "timm==1.0.22",
+    "sklearn==1.7.0"
 ]
 
 [tool.setuptools]
