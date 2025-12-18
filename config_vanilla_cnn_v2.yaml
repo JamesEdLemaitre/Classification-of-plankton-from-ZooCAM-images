@@ -1,8 +1,8 @@
 # RESULTAT 60.9 sur Kaggle
 
 data:
-  trainpath: './data/train'
-  testpath: './data/test'
+  trainpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/train'  
+  testpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/test'
   batch_size: 256
   num_workers: 8
   valid_ratio: 0.2
