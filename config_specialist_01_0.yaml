@@ -1,0 +1,50 @@
+# Corrected dinov3 input img size !!
+data:
+  trainpath: './data_reannotated/train/1_Copepoda_Torpille'
+  dataset_mode: 'specialist'
+  dataset_size_divider: 2
+  testpath: './data/test'
+  batch_size: 64
+  num_workers: 8
+  valid_ratio: 0.10
+  images_resize: 224
+  rgb: True
+  augmentations_v2: True
+
+optim:
+  algo: AdamW
+  params:
+    phase1_lr: 0.001  # LR pour Phase 1 (head only) - plus élevé
+    phase2_lr: 0.0001  # LR pour Phase 2 (fine-tuning) - beaucoup plus bas
+
+nepochs: 100
+loss: "CrossEntropyLoss" # Tester d'autres
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs/DINOv3Classifier_24/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"        
+  factor: 0.5    
+  patience: 3
+  min_lr: 1.0e-6   
+
+model:
+  class: TimmClassifier
+  model_name: "resnext50_32x4d"  # ou "efficientnet_b3", "convnext_tiny"
+  pretrained: true
+  freeze_backbone: true  # ✅ Freeze initial pour Phase 1
+  head_hidden_dims: [512, 256]
+  dropout: 0.2
+  
+  phase1_epochs: 10   # Époques Phase 1 (head only)
+  phase2_epochs: 40   # Époques Phase 2 (fine-tuning)
+  unfreeze_layers: null  # null = tout dégeler, ou int (ex: 20) pour dégeler les 20 dernières couches
+
+

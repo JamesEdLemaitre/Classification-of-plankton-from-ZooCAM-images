@@ -25,6 +25,10 @@ J'ai également réannoté à la main la classe 49 qui était soit cercle + tent
 On la met manuellement dans les données réannotées comme:
 
 cd .../kaggle_challenge_sdi
-cp -r ./data/049_01_translucide/ ./data_reannotated/train/2_Gelatinous_Transparent/
-cp -r ./data/049_02_pieuvre_like/ ./data_reannotated/train/6_Hard_Shells_Misc/
+cp -r ./data/049_01_translucide/* ./data_reannotated/train/2_Gelatinous_Transparent/
+cp -r ./data/049_02_pieuvre_like/* ./data_reannotated/train/6_Hard_Shells_Misc/
 
+
+___ Après analyse des résultats des entraînements des modèles spécialisés:
+
+002 pourrait mériter un split similaire à 49 entre elongated et gelatinous

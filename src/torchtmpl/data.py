@@ -3,6 +3,7 @@
 # Standard imports
 import logging
 import random
+import os
 
 # External imports
 import numpy as np
@@ -14,6 +15,7 @@ from torchvision import transforms
 from torchvision.utils import make_grid
 import torchvision.transforms.functional as F
 import PIL
+from PIL import Image
 
 import matplotlib.pyplot as plt
 
@@ -308,7 +310,64 @@ def show_images_information(dataset, results_save_path="./data_analysis"):
     print(f"   - images_ratios_by_class.png (ratios per class)")
     print(f"   - images_dimensions_by_class.png (comparison by class)")
 
+class SpecialistDataset(torch.utils.data.Dataset):
+    """
+    Dataset personnalisé pour le "Niveau 2" (Spécialistes).
+    Lit un dossier plat contenant des images nommées 'NomClasse_NomFichier.jpg'.
+    """
+    def __init__(self, root_dir, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.samples = []
+        
+        # Récupération des fichiers
+        file_list = [f for f in os.listdir(root_dir) if f.lower().endswith(('jpg', 'png', 'jpeg', 'tif', 'bmp'))]
+        
+        # Dictionnaire pour mapper les noms de classes (str) -> indices (int)
+        self.class_to_idx = {}
+        unique_classes = set()
+        
+        # PREMIÈRE PASSE : Identifier toutes les classes uniques
+        for fname in file_list:
+            # --- LOGIQUE DE DÉCOUPAGE DU NOM DE CLASSE ---
+            # Par défaut : on prend tout ce qui est avant le PREMIER underscore
+            # Ex: "030_Copepoda_img1.jpg" -> classe "030"
+            # Si tes classes sont complexes (ex: "049_01"), change le [0] en [:2] et join
+            label_str = fname.split('_')[0] 
+            unique_classes.add(label_str)
+            
+        # Création du mapping trié pour que les ID soient constants
+        sorted_classes = sorted(list(unique_classes))
+        self.class_to_idx = {cls_name: i for i, cls_name in enumerate(sorted_classes)}
+        self.classes = sorted_classes # Pour compatibilité avec ImageFolder
+        
+        # DEUXIÈME PASSE : Créer la liste des samples (path, class_idx)
+        for fname in file_list:
+            label_str = fname.split('_')[0] # DOIT MATCHER LA LOGIQUE CI-DESSUS
+            class_idx = self.class_to_idx[label_str]
+            path = os.path.join(self.root_dir, fname)
+            self.samples.append((path, class_idx))
+            
+        # Pour compatibilité avec le calcul des poids (targets accessible directement)
+        self.targets = [s[1] for s in self.samples]
+        
+        # Créer un alias 'imgs' qui pointe vers 'samples'
+        # comme le fait torchvision.datasets.ImageFolder
+        self.imgs = self.samples
 
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        path, target = self.samples[idx]
+        # Chargement image (RGB par defaut pour PIL)
+        with open(path, 'rb') as f:
+            img = Image.open(f).convert('RGB')
+            
+        if self.transform:
+            img = self.transform(img)
+            
+        return img, target
 
 def get_dataloaders(data_config, use_cuda):
     valid_ratio = data_config["valid_ratio"]
@@ -317,6 +376,10 @@ def get_dataloaders(data_config, use_cuda):
     resize = data_config["images_resize"]
     use_rgb = data_config.get("rgb", False)
     augmentations_v2 = data_config.get("augmentations_v2", False)
+    dataset_size_divider = data_config.get("dataset_size_divider", 6)
+
+    # Récupération du mode (standard par défaut)
+    dataset_mode = data_config.get("dataset_mode", "standard") 
 
     logging.info("  - Dataset creation")
 
@@ -383,11 +446,20 @@ def get_dataloaders(data_config, use_cuda):
         ])
 
         input_transform = transforms.Compose(transform_list)
-
-    base_dataset = torchvision.datasets.ImageFolder(
-        root=data_config["trainpath"], 
-        transform=input_transform,
-    )
+    
+    # --- CHARGEMENT DU DATASET SELON LE MODE ---
+    if dataset_mode == "specialist":
+        # Mode Spécialiste : Lit les préfixes des fichiers dans un dossier plat
+        base_dataset = SpecialistDataset(
+            root_dir=data_config["trainpath"], # Doit pointer vers le sous-dossier (ex: .../1_Copepoda)
+            transform=input_transform
+        )
+    else:
+        # Mode Standard (Général) : Structure ImageFolder classique
+        base_dataset = torchvision.datasets.ImageFolder(
+            root=data_config["trainpath"], 
+            transform=input_transform,
+        )
 
     logging.info(f"  - I loaded {len(base_dataset)} samples")
 
@@ -431,7 +503,7 @@ def get_dataloaders(data_config, use_cuda):
     train_weights = [sample_weights[i] for i in train_indices]
     sampler = WeightedRandomSampler(
         weights=train_weights,
-        num_samples=len(train_weights)//6,
+        num_samples=len(train_weights)//dataset_size_divider,
         replacement=True
     )
     train_loader = torch.utils.data.DataLoader(

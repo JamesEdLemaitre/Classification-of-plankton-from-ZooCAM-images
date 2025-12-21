@@ -5,6 +5,7 @@ import logging
 import sys
 import os
 import pathlib
+import numpy as np
 
 # External imports
 import yaml
@@ -139,7 +140,7 @@ def train(config):
 
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
-        model, str(logdir / "best_model.pt"), min_is_best=True
+        model, str(logdir / "best_model.pt"), min_is_best=False
     )
 
     epoch_pbar = tqdm(
@@ -169,7 +170,7 @@ def train(config):
             current_lr = optimizer.param_groups[0]['lr']
             logging.info(f"  Current LR: {current_lr:.6f}")
 
-        updated = model_checkpoint.update(test_loss)
+        updated = model_checkpoint.update(test_metrics['f1'])
         logging.info(
             "[%d/%d] Test loss : %.3f %s | metrics: %s"
             % (
@@ -238,7 +239,7 @@ def train_by_steps(config):
     
     # Model checkpoint
     model_checkpoint = utils.ModelCheckpoint(
-        model, str(logdir / "best_model.pt"), min_is_best=True
+        model, str(logdir / "best_model.pt"), min_is_best=False
     )
     
     # ========== PHASE 1: Train head only ==========
@@ -282,7 +283,7 @@ def train_by_steps(config):
             else:
                 scheduler_phase1.step()
         
-        updated = model_checkpoint.update(test_loss)
+        updated = model_checkpoint.update(test_metrics['f1'])
         logging.info(
             "[Phase 1 - %d/%d] Test loss : %.3f %s | metrics: %s"
             % (e, phase1_epochs, test_loss, "[>> BETTER <<]" if updated else "", test_metrics)
@@ -358,7 +359,7 @@ def train_by_steps(config):
             else:
                 scheduler_phase2.step()
         
-        updated = model_checkpoint.update(test_loss)
+        updated = model_checkpoint.update(test_metrics['f1'])
         logging.info(
             "[Phase 2 - %d/%d] Test loss : %.3f %s | metrics: %s"
             % (e, phase2_epochs, test_loss, "[>> BETTER <<]" if updated else "", test_metrics)
@@ -788,6 +789,11 @@ def test(config):
     results_path = config["logging"].get("results_path", "./results")
     use_rgb = data_config.get("rgb", False)
     augmentations_v2 = data_config.get("augmentations_v2", False)
+    dataset_size_divider = data_config.get("dataset_size_divider", 6)
+    valid_ratio = data_config["valid_ratio"]
+
+    # Récupération du mode (standard par défaut)
+    dataset_mode = data_config.get("dataset_mode", "standard") 
 
     if use_rgb:
         MEAN = [0.485, 0.456, 0.406]
@@ -853,10 +859,27 @@ def test(config):
     logging.info("= Getting number of classes from training set")
 
     # Charger le dataset complet pour avoir les classes
-    full_dataset = torchvision.datasets.ImageFolder(
-        root=train_path,
-        transform=test_transform
-    )
+    # --- CHARGEMENT DU DATASET SELON LE MODE ---
+    if dataset_mode == "specialist":
+        # Mode Spécialiste : Lit les préfixes des fichiers dans un dossier plat
+        full_dataset = data.SpecialistDataset(
+            root_dir=data_config["trainpath"], # Doit pointer vers le sous-dossier (ex: .../1_Copepoda)
+            transform=test_transform
+        )
+    else:
+        # Mode Standard (Général) : Structure ImageFolder classique
+        full_dataset = torchvision.datasets.ImageFolder(
+            root=data_config["trainpath"], 
+            transform=test_transform,
+        )
+
+    targets = np.array(full_dataset.targets) 
+    unique_classes, class_counts = np.unique(targets, return_counts=True)
+    total_samples = len(targets)
+    num_classes = len(unique_classes)
+    class_weights_array = total_samples / (num_classes * class_counts)
+
+
     num_classes = len(full_dataset.classes)
     class_names = full_dataset.classes
     logging.info(f"  - Number of classes: {num_classes}")
@@ -874,35 +897,36 @@ def test(config):
     num_valid = int(valid_ratio * len(full_dataset))
     train_indices = indices[num_valid:]
     valid_indices = indices[:num_valid]
-    
-    # Ne garder que le validation set
     valid_dataset = torch.utils.data.Subset(full_dataset, valid_indices)
-    
+   
     valid_loader = torch.utils.data.DataLoader(
         valid_dataset,
-        batch_size=data_config["batch_size"],
-        shuffle=False,
-        num_workers=data_config["num_workers"],
-        pin_memory=use_cuda
-    )
-    
-    logging.info(f"  - Loaded {len(valid_dataset)} validation samples for analysis")
-
-    # Charger les images de test Kaggle (SANS labels)
-    test_dataset = torchvision.datasets.ImageFolder(
-        root=test_path,
-        transform=test_transform
-    )
-
-    test_loader = torch.utils.data.DataLoader(
-        test_dataset,
         batch_size=data_config["batch_size"],
         shuffle=False, 
         num_workers=data_config["num_workers"],
         pin_memory=use_cuda
     )
 
-    logging.info(f"  - Loaded {len(test_dataset)} test samples for Kaggle submission")
+    
+    logging.info(f"  - Loaded {len(valid_dataset)} validation samples for analysis")
+
+    # Charger les images de test Kaggle (SANS labels)
+    if dataset_mode == "standard":
+        logging.info("= Loading test dataset (standard mode)")
+        test_dataset = torchvision.datasets.ImageFolder(
+            root=test_path,
+            transform=test_transform
+        )
+
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset,
+            batch_size=data_config["batch_size"],
+            shuffle=False, 
+            num_workers=data_config["num_workers"],
+            pin_memory=use_cuda
+        )
+
+        logging.info(f"  - Loaded {len(test_dataset)} test samples for Kaggle submission")
 
     # Charger le meilleur modèle
     logging.info("= Loading best model")
@@ -925,7 +949,7 @@ def test(config):
     logging.info(f"  - Loading model from {model_path}")
 
     # Reconstruire le modèle
-    input_size = tuple(test_dataset[0][0].shape)
+    input_size = tuple(full_dataset[0][0].shape)
     model = models.build_model(model_config, input_size, num_classes)
 
     # Charger les poids
@@ -964,52 +988,56 @@ def test(config):
 
     logging.info(f"\n✓ Full analysis available in: {analysis_dir}")
 
-    # ============================================
-    # 2️⃣ INFÉRENCE SUR TEST SET (pour Kaggle)
-    # ============================================
-    logging.info("\n" + "="*50)
-    logging.info("TEST SET INFERENCE (for Kaggle submission)")
-    logging.info("="*50)
+    if dataset_mode == "standard":
+        # ============================================
+        # 2️⃣ INFÉRENCE SUR TEST SET (pour Kaggle)
+        # ============================================
+        logging.info("\n" + "="*50)
+        logging.info("TEST SET INFERENCE (for Kaggle submission)")
+        logging.info("="*50)
 
-    test_predictions = []
-    test_filenames = []
+        test_predictions = []
+        test_filenames = []
 
-    with torch.no_grad():
-        for images, _ in tqdm(test_loader, desc="Test Inference", unit="batch"):
-            images = images.to(device)
-            outputs = model(images)
-            _, preds = torch.max(outputs, 1)
-            test_predictions.extend(preds.cpu().numpy())
+        with torch.no_grad():
+            for images, _ in tqdm(test_loader, desc="Test Inference", unit="batch"):
+                images = images.to(device)
+                outputs = model(images)
+                _, preds = torch.max(outputs, 1)
+                test_predictions.extend(preds.cpu().numpy())
 
-    # Récupérer les noms de fichiers dans l'ordre
-    for idx in range(len(test_dataset)):
-        filepath = test_dataset.imgs[idx][0]
-        filename = os.path.basename(filepath)
-        test_filenames.append(filename)
+        # Récupérer les noms de fichiers dans l'ordre
+        for idx in range(len(test_dataset)):
+            filepath = test_dataset.imgs[idx][0]
+            filename = os.path.basename(filepath)
+            test_filenames.append(filename)
 
-    # Créer le DataFrame pour Kaggle
-    import pandas as pd
+        # Créer le DataFrame pour Kaggle
+        import pandas as pd
 
-    results_df = pd.DataFrame({
-        'imgname': test_filenames,
-        'label': test_predictions
-    })
+        results_df = pd.DataFrame({
+            'imgname': test_filenames,
+            'label': test_predictions
+        })
 
-    # Sauvegarder
-    output_file = os.path.join(results_path, "submission.csv")
-    results_df.to_csv(output_file, index=False)
+        # Sauvegarder
+        output_file = os.path.join(results_path, "submission.csv")
+        results_df.to_csv(output_file, index=False)
 
-    logging.info(f"Kaggle submission saved to {output_file}")
-    logging.info(f"  - Total predictions: {len(test_predictions)}")
-    logging.info(f"  - Unique classes predicted: {len(set(test_predictions))}")
+        logging.info(f"Kaggle submission saved to {output_file}")
+        logging.info(f"  - Total predictions: {len(test_predictions)}")
+        logging.info(f"  - Unique classes predicted: {len(set(test_predictions))}")
 
-    # Afficher la distribution des prédictions
-    logging.info("\nTest Prediction distribution:")
-    for class_idx in sorted(set(test_predictions)):
-        count = test_predictions.count(class_idx)
-        percentage = 100 * count / len(test_predictions)
-        class_name = class_names[class_idx] if class_idx < len(class_names) else f"Class_{class_idx}"
-        logging.info(f"  {class_name}: {count} ({percentage:.2f}%)")
+        # Afficher la distribution des prédictions
+        logging.info("\nTest Prediction distribution:")
+        for class_idx in sorted(set(test_predictions)):
+            count = test_predictions.count(class_idx)
+            percentage = 100 * count / len(test_predictions)
+            class_name = class_names[class_idx] if class_idx < len(class_names) else f"Class_{class_idx}"
+            logging.info(f"  {class_name}: {count} ({percentage:.2f}%)")
+
+    else:
+        output_file = None
 
     return output_file, analysis_dir
 

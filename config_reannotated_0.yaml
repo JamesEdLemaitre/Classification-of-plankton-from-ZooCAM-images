@@ -1,10 +1,12 @@
+# Got acc 88% and f1-score 76% on local validation for the reannotated dataset ONLY. 
+# Considered enough to pursue with larger images and a largermodel.
 data:
   trainpath: './data_reannotated/train'
   testpath: './data/test'
   batch_size: 256
   num_workers: 8
   valid_ratio: 0.2
-  images_resize: 256
+  images_resize: 128
 
 optim:
   algo: AdamW
@@ -20,7 +22,7 @@ logging:
   #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/VanillaCNNV2_11/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs/VanillaCNNV2_3/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"
@@ -35,4 +37,4 @@ scheduler:
 model:
   class: VanillaCNNV2
   layer1_size : 32
-  num_layers : 5
+  num_layers : 4

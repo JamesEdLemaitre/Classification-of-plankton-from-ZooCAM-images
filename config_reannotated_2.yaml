@@ -1,0 +1,44 @@
+# Corrected dinov3 input img size !!
+data:
+  trainpath: './data_reannotated/train'
+  testpath: './data/test'
+  batch_size: 64
+  num_workers: 8
+  valid_ratio: 0.10
+  images_resize: 224
+  rgb: True
+  augmentations_v2: True
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.0001 # Changer avec un zero de plus pour voir 
+
+nepochs: 100
+loss: "CrossEntropyLoss" # Tester d'autres
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs/DINOv3Classifier_24/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"        
+  factor: 0.5    
+  patience: 3
+  min_lr: 1.0e-6   
+
+
+# model:
+#   class: Linear
+model:
+  class: DINOv3Classifier
+  model_size: small
+  freeze_backbone: false
+  head_hidden_dims: [512, 256]
+  dropout: 0.1
+
