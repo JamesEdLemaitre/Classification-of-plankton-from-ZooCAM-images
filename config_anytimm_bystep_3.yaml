@@ -1,0 +1,44 @@
+model:
+  class: TimmClassifier
+  model_name: "resnext50_32x4d"  # ou "efficientnet_b3", "convnext_tiny"
+  pretrained: true
+  freeze_backbone: true  # ✅ Freeze initial pour Phase 1
+  head_hidden_dims: [512, 256]
+  dropout: 0.2
+  
+  phase1_epochs: 10   # Époques Phase 1 (head only)
+  phase2_epochs: 40   # Époques Phase 2 (fine-tuning)
+  unfreeze_layers: null  # null = tout dégeler, ou int (ex: 20) pour dégeler les 20 dernières couches
+
+optim:
+  algo: AdamW
+  params:
+    phase1_lr: 0.001 
+    phase2_lr: 0.0001   
+    weight_decay: 0.01
+
+nepochs: 50  # Total (phase1_epochs + phase2_epochs devrait être <= nepochs)
+
+loss: "CrossEntropyLoss"
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"
+  factor: 0.5
+  patience: 5
+  min_lr: 1.0e-7
+
+data:
+  trainpath: "./data/train"
+  testpath: "./data/test"
+  images_resize: 224  # 224 pour ResNet/ResNeXt, 300 pour EfficientNet-B3
+  rgb: true
+  batch_size: 128
+  num_workers: 8
+  valid_ratio: 0.1
+  augmentations_v2: false
+
+logging:
+  logdir: "./logs"
+  results_path: "./results"
+  model_path: "./logs/TimmClassifier_6/best_model.pt"

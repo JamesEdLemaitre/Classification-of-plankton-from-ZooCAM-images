@@ -316,23 +316,73 @@ def get_dataloaders(data_config, use_cuda):
     num_workers = data_config["num_workers"]
     resize = data_config["images_resize"]
     use_rgb = data_config.get("rgb", False)
+    augmentations_v2 = data_config.get("augmentations_v2", False)
 
     logging.info("  - Dataset creation")
 
-    transform_list = []
-    
-    if not use_rgb:
-        transform_list.append(transforms.Grayscale())  # 1 canal
-    # Sinon, reste en RGB natif (3 canaux)
-    
-    transform_list.extend([
-        transforms.Resize((resize, resize)),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
-        transforms.ToTensor()
-    ])
+    if use_rgb:
+        MEAN = [0.485, 0.456, 0.406]
+        STD = [0.229, 0.224, 0.225]
+    else:
+        MEAN = [0.485]
+        STD = [0.229]
 
-    input_transform = transforms.Compose(transform_list)
+    transform_list = []
+
+    if not augmentations_v2:
+    
+        if not use_rgb:
+            transform_list.append(transforms.Grayscale())  # 1 canal
+        # Sinon, reste en RGB natif (3 canaux)
+        
+        transform_list.extend([
+            transforms.Resize((resize, resize)),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(15),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=MEAN, std=STD) 
+        ])
+
+        input_transform = transforms.Compose(transform_list)
+
+    else:
+        print("Using data augmentations v2")
+        def square_pad(img):
+            """Ajoute du padding pour rendre l'image carrée"""
+            c, h, w = img.shape
+
+            if h > w:
+                padding_left = (h - w) // 2
+                padding_right = h - w - padding_left
+                padding_top = 0
+                padding_bottom = 0
+            else:
+                padding_left = 0 
+                padding_right = 0
+                padding_top = (w - h)//2
+                padding_bottom = w - h - padding_top
+
+            return F.pad(
+                img,
+                (padding_left, padding_top, padding_right, padding_bottom),
+                0,
+                'constant',
+                        
+            )
+
+        if not use_rgb:
+            transform_list.append(transforms.Grayscale())
+
+        transform_list.extend([
+            transforms.ToTensor(),
+            transforms.Lambda(square_pad),
+            transforms.Resize((resize, resize)),
+            transforms.RandomRotation(180),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.Normalize(mean=MEAN, std=STD),
+        ])
+
+        input_transform = transforms.Compose(transform_list)
 
     base_dataset = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"], 
@@ -367,6 +417,7 @@ def get_dataloaders(data_config, use_cuda):
     logging.info(f"    Classes: {num_classes}, Samples: {total_samples:,}")
     logging.info(f"    Weights range: [{class_weights_array.min():.4f}, {class_weights_array.max():.4f}]")
 
+    random.seed(42)
     indices = list(range(len(base_dataset)))
     random.shuffle(indices)
     num_valid = int(valid_ratio * len(base_dataset))
@@ -429,7 +480,7 @@ def test_dataloaders():
 
     print(f"Use CUDA: {use_cuda} | Device: {device}")
 
-    train_loader, valid_loader, input_size, num_classes = get_dataloaders(
+    train_loader, valid_loader, input_size, num_classes, _ = get_dataloaders(
         data_config, use_cuda
     )
 
@@ -446,6 +497,7 @@ def test_dataloaders():
     grid = make_grid(X, nrow=8)
     show(grid)
     plt.tight_layout()
+    plt.savefig(f"{results_save_path}/sample_batch.png", dpi=150)
     plt.show()
 
 if __name__ == "__main__":
