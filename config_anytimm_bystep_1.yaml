@@ -1,0 +1,43 @@
+model:
+  class: TimmClassifier
+  model_name: "efficientnet_b3"  # ✅ EfficientNet-B3
+  pretrained: true
+  freeze_backbone: true
+  head_hidden_dims: [512, 256]
+  dropout: 0.3  # ✅ EfficientNet bénéficie d'un dropout plus élevé
+
+  phase1_epochs: 10
+  phase2_epochs: 40
+  unfreeze_layers: null
+
+optim:
+  algo: AdamW
+  params:
+    phase1_lr: 0.001
+    phase2_lr: 0.00005  # ✅ LR plus faible (EfficientNet plus sensible)
+    weight_decay: 0.01
+
+nepochs: 50
+
+loss: "CrossEntropyLoss"
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"
+  factor: 0.5
+  patience: 7  # ✅ Plus patient (EfficientNet converge plus lentement)
+  min_lr: 5.0e-8  # ✅ Min LR plus bas
+
+data:
+  trainpath: "./data/train"
+  testpath: "./data/test"
+  images_resize: 300  
+  rgb: true
+  batch_size: 96 
+  num_workers: 8
+  valid_ratio: 0.1
+  augmentations_v2: true
+
+logging:
+  logdir: "./logs"
+  results_path: "./results"

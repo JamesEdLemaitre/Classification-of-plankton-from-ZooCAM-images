@@ -1,0 +1,50 @@
+# Configuration for DINOv3 progressive training
+# In this version, test a different scheduler and denoise preprocessing
+# Got _%
+
+data:
+  trainpath: './denoising/preprocessed_data/train'
+  testpath: './denoising/preprocessed_data/test'
+  # trainpath: './data/train'
+  # testpath: './data/test'
+  batch_size: 64
+  num_workers: 8
+  valid_ratio: 0.09
+  images_resize: 256
+  rgb: True
+
+optim:
+  algo: AdamW
+  params:
+    phase1_lr: 0.001  # LR pour Phase 1 (head only) - plus élevé
+    phase2_lr: 0.0001  # LR pour Phase 2 (fine-tuning) - beaucoup plus bas
+
+nepochs: 100  # Total des 2 phases (30 + 70 dans l'exemple ci-dessous)
+
+loss: "CrossEntropyLoss"
+
+logging:
+  # wandb: 
+  #   project: sample_project
+  #   entity: sample_entity
+  logdir: "./logs"
+  results_path: "./results"
+  model_path: "./logs/DINOv3Classifier_bystep_22/best_model.pt"  # Sera mis à jour
+
+scheduler:
+  class: "CosineAnnealingLR"
+  T_max: 20
+  eta_min: 1.0e-7
+
+model:
+  class: DINOv3Classifier_bystep
+  model_size: small
+  head_hidden_dims: [512, 256]
+  dropout: 0.1
+  
+  # Paramètres spécifiques au training progressif
+  phase1_epochs: 20  # Phase 1: entraîner la tête seulement
+  phase2_epochs: 85  # Phase 2: fine-tuning (total = 100 epochs)
+  unfreeze_layers: None  # Unfreeze les 6 derniers blocks du ViT
+                      # Mettre à None pour unfreeze tout le backbone
+                      # small ViT a 12 blocks, donc 6 = la moitié supérieure

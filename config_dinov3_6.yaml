@@ -1,8 +1,10 @@
 # Got _%
 
 data:
-  trainpath: './denoising/preprocessed_data/train'
-  testpath: './denoising/preprocessed_data/test'
+  # trainpath: './denoising/preprocessed_data/train'
+  # testpath: './denoising/preprocessed_data/test'
+  trainpath: './data/train'
+  testpath: './data/test'
   batch_size: 256
   num_workers: 8
   valid_ratio: 0.09

@@ -1,0 +1,44 @@
+model:
+  class: TimmClassifier
+  model_name: "efficientnet_b5"  # ⚠️ Beaucoup plus lourd
+  pretrained: true
+  freeze_backbone: true
+  head_hidden_dims: [512, 256]
+  dropout: 0.3
+
+  phase1_epochs: 10
+  phase2_epochs: 40
+  unfreeze_layers: null
+
+optim:
+  algo: AdamW
+  params:
+    phase1_lr: 0.001
+    phase2_lr: 0.00003  # ⚠️ Encore plus faible que B3
+    weight_decay: 0.01
+
+nepochs: 50
+
+loss: "CrossEntropyLoss"
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"
+  factor: 0.5
+  patience: 6
+  min_lr: 1.0e-8
+
+data:
+  trainpath: "./data/train"
+  testpath: "./data/test"
+  images_resize: 456  # ⚠️ Beaucoup plus grand !
+  rgb: true
+  batch_size: 24  # ⚠️ Très réduit
+  num_workers: 8
+  valid_ratio: 0.1
+  augmentations_v2: true
+  pin_memory: true
+
+logging:
+  logdir: "./logs"
+  results_path: "./results"

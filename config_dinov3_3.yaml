@@ -23,7 +23,7 @@ logging:
   #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/DINOv3Classifier_8/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs/DINOv3Classifier_22/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"
