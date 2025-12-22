@@ -1,0 +1,5 @@
+tqdm
+numpy
+PIL
+random
+torchvision
