@@ -7,7 +7,7 @@ data:
   images_resize: 32
   dataset_size_divider: 200
   use_rgb: True
-  transformations_version: basic
+  transformations_version: basic # options: basic, preserve_aspect_ratio
 
 optim:
   algo: AdamW
@@ -17,9 +17,9 @@ optim:
 loss: "CrossEntropyLoss"
 
 logging:
-  logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
+  logdir: "./logs_v2"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/VanillaCNNV2_11/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs_v2/_/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"
