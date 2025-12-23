@@ -67,3 +67,35 @@ def VanillaCNNV2(cfg, input_size, num_classes):
     num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
     out_layers = [nn.Flatten(start_dim=1), nn.Linear(num_features, num_classes)]
     return nn.Sequential(conv_model, *out_layers)
+
+
+'''def CNN(cfg, input_size, num_classes):
+    layers = []
+    # Convolutional layer 
+    layers.append(nn.Conv2d(in_channels=input_size[0], out_channels=60, kernel_size=3, padding=1))
+    layers.append(nn.ReLU())
+    # Max pooling pour redimensionner l'image
+    layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+    
+    conv_model = nn.Sequential(*layers)
+    
+    # Compute the output size of the convolutional part
+    probing_tensor = torch.zeros((1,) + input_size)
+    out_cnn = conv_model(probing_tensor)  # B, K, H, W
+    num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
+    out_layers = [nn.Flatten(start_dim=1), nn.Linear(num_features, num_classes)]
+    return nn.Sequential(conv_model, *out_layers)'''
+
+def CNN(cfg, input_size, num_classes):
+    layers = []
+    layers.append(nn.Conv2d(in_channels=input_size[0], out_channels=60, kernel_size=1, padding=1))
+    layers.append(nn.ReLU())
+    layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+
+    CNN_model = nn.Sequential(*layers)
+    
+    probing_tensor = torch.zeros((1,) + input_size)
+    out_cnn = CNN_model(probing_tensor)
+    num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
+    out_layers = [nn.Flatten(), nn.Linear(num_features, num_classes)]
+    return nn.Sequential(CNN_model, *out_layers)

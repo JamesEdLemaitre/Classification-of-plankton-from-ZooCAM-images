@@ -6,7 +6,7 @@ import torch
 # Local imports
 from .base_models import *
 from .cnn_models import *
-#from .foundation_models import *
+from .foundation_models import *
 
 
 def build_model(cfg, input_size, num_classes):

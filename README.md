@@ -47,6 +47,8 @@ Then running the simulation can be as simple as :
 python3 submit.py
 ```
 
+python3 ./submit-slurm.py
+
 ## Testing the functions
 
 Every module/script is equiped with some test functions. Although these are not unitary tests per se, they nonetheless illustrate how to test the provided functions.
@@ -60,6 +62,11 @@ source venv/bin/activate
 python -m pip install .
 python -m torchtmpl.models
 ```
+--FAIRE Directement
+python -m pip install .
+cd "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/src"
+python3 -m torchtmpl.models
+
 
 and this will call the test functions in the `torchtmpl/models/__main__.py` script.
 
