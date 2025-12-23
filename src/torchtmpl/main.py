@@ -27,7 +27,7 @@ def train(config):
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
     logging.info(f"Training on device: {device}")
     training_style = config["training"].get("style", "standard")
-    phases = config.get("phases", [{"epochs": config["nepochs"], "unfreeze": "none"}])
+    phases = config.get("phases", [{"epochs": config.get("nepochs", 1), "unfreeze": "none"}])
     
     if "wandb" in config["logging"]:
         wandb_config = config["logging"]["wandb"]

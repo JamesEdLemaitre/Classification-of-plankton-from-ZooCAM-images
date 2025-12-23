@@ -1,5 +1,5 @@
 data:
-  trainpath: './data/original_dataset/train'
+  trainpath: './data/data_reannotated/train/3_Macro_Crustacea_Larvae'
   testpath: './data/original_dataset/test'
   batch_size: 256
   num_workers: 8
@@ -7,13 +7,13 @@ data:
   images_resize: 32
   dataset_size_divider: 200
   use_rgb: True
+  transformations_version: basic
 
 optim:
   algo: AdamW
   params:
     lr: 0.001
 
-nepochs: 10
 loss: "CrossEntropyLoss"
 
 logging:
@@ -35,7 +35,7 @@ model:
   dropout: 0.1             # Bon pour éviter l'overfitting
   
 training:
-  style: standard
+  style: specialist
 
 phases:
   # PHASE 1 : On ne met PAS de clé "unfreeze". 
