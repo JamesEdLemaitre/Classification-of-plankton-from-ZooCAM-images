@@ -105,7 +105,7 @@ def train(config):
 
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
-        model, str(logdir / "best_model.pt"), min_is_best=True
+        model, str(logdir / "best_model.pt"), min_is_best=False
     )
 
     # Build the LR scheduler
@@ -118,22 +118,22 @@ def train(config):
         scheduler = None
         logging.info("  No scheduler specified")
 
-    # Freeze all parameters before the begining of training
-    for param in model.parameters():
-        param.requires_grad = False
-
     global_epoch = 0
     for phase_idx, phase in enumerate(phases):
         logging.info(f"\n{'='*60}")
         logging.info(f"PHASE {phase_idx+1}: {phase['name']} ({phase['epochs']} epochs, lr={phase['lr']})")
         logging.info(f"{'='*60}\n")
 
-        # Unfreeze selon config
+         # Logique de dégel
         if phase.get("unfreeze") == "all":
+            # Phase 3 : On dégèle tout
             for param in model.parameters(): param.requires_grad = True
+
         elif phase.get("unfreeze"):
+            # Phase 2 : On dégèle partiellement (si supporté)
             if hasattr(model, 'unfreeze_backbone'):
-                model.unfreeze_backbone(num_layers=phase.get("unfreeze_layers", None))
+                # Note: Assure-toi que 'unfreeze_layers' est bien dans le YAML pour la phase 2
+                model.unfreeze_backbone(num_layers=phase.get("unfreeze_layers"))
             else:
                 logging.warning("No unfreeze_backbone method")
         
@@ -142,7 +142,7 @@ def train(config):
             group['lr'] = phase['lr']
 
         # Progress bar for this phase
-        epoch_pbar = tqdm(range(config["nepochs"]), 
+        epoch_pbar = tqdm(range(phase["epochs"]), 
             desc="Training", 
             unit="epoch",
             position=0,
@@ -164,20 +164,18 @@ def train(config):
                     scheduler.step()
 
             # Update checkpoint
-            updated = model_checkpoint.update(test_metrics["loss"])
+            updated = model_checkpoint.update(test_metrics["f1"])
             logging.info(
                 f"[Phase {phase_idx+1}-{e+1}/{phase['epochs']}] loss: {test_metrics['loss']:.3f} "
                 f"{'[>> BETTER <<]' if updated else ''} | {test_metrics}"
             )
 
-            # Metrics avec phase info
-            metrics = {
-                "phase": phase_idx+1, "phase_name": phase["name"],
-                "train_CE": train_loss, **test_metrics, 
-                "learning_rate": optimizer.param_groups['lr']
-            }
-            if wandb_log: wandb_log(metrics)
-            
+            # Update the dashboard
+            metrics = {"train_CE": train_loss, **test_metrics, "learning_rate": optimizer.param_groups[0]['lr']}
+            if wandb_log is not None:
+                logging.info("Logging on wandb")
+                wandb_log(metrics)
+                
             global_epoch += 1
 
 

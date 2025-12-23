@@ -15,6 +15,7 @@ from torchvision import transforms
 import torchvision.transforms.functional as F
 from torchvision.utils import make_grid
 from PIL import Image
+from torch.utils.data import WeightedRandomSampler
 
 import matplotlib.pyplot as plt
 
@@ -177,10 +178,11 @@ def get_dataloaders(data_config, training_style="standard"):
     batch_size = data_config["batch_size"]
     num_workers = data_config["num_workers"]
     resize = data_config["images_resize"]
-    use_rgb = data_config.get("rgb", False)
+    use_rgb = data_config.get("use_rgb", False)
     use_cuda = data_config.get("use_cuda", torch.cuda.is_available())
     transformations_version = data_config.get("transformations_version", "basic")
     random_seed = data_config.get("random_seed", 42)
+    dataset_size_divider = data_config.get("dataset_size_divider", 1) 
 
     logging.info("  - Dataset creation")
     logging.info(f"    Style: {training_style} | Transform: {transformations_version}")
@@ -207,6 +209,8 @@ def get_dataloaders(data_config, training_style="standard"):
     # Convert to torch
     class_weights_torch = torch.FloatTensor(class_weights_array)
 
+    sample_weights_full = class_weights_array[targets]
+
     logging.info(f"    Classes: {num_classes}, Samples: {total_samples:,}")
     logging.info(f"    Weights range: [{class_weights_array.min():.4f}, {class_weights_array.max():.4f}]")
 
@@ -225,15 +229,25 @@ def get_dataloaders(data_config, training_style="standard"):
     train_dataset = torch.utils.data.Subset(dataset_train_obj, train_indices)
     valid_dataset = torch.utils.data.Subset(dataset_valid_obj, test_indices)
 
+    # On extrait les poids correspondants uniquement aux indices du train
+    train_weights = [sample_weights_full[i] for i in train_indices]
+
+    sampler = WeightedRandomSampler(
+        weights=train_weights,
+        num_samples=len(train_weights) // dataset_size_divider,
+        replacement=True
+    )
 
     # Build the dataloaders
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        sampler=sampler, 
+        shuffle=False, # Le sampler se cahrge de l'aléatoire.  
         num_workers=num_workers,
         pin_memory=use_cuda,
     )
+
 
     test_loader = torch.utils.data.DataLoader(
         valid_dataset,

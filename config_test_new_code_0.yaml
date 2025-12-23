@@ -1,17 +1,18 @@
 data:
-  trainpath: './data/original_dataset/3-md-4040-2026-challenge/train'
-  testpath: './data/original_dataset/3-md-4040-2026-challenge/test'
+  trainpath: './data/original_dataset/train'
+  testpath: './data/original_dataset/test'
   batch_size: 256
   num_workers: 8
   valid_ratio: 0.2
   images_resize: 128
+  dataset_size_divider: 100
 
 optim:
   algo: AdamW
   params:
     lr: 0.001
 
-nepochs: 50
+nepochs: 10
 loss: "CrossEntropyLoss"
 
 logging:
