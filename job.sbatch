@@ -20,9 +20,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude configs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id d245f449a326fe838fc05ca5f96f299041297843"
+echo "Checking out the correct version of the code commit_id 8f772faa4b738586b65036aeb88c9bda42ae6534"
 cd $TMPDIR/code
-git checkout d245f449a326fe838fc05ca5f96f299041297843
+git checkout 8f772faa4b738586b65036aeb88c9bda42ae6534
 
 
 echo "Setting up the virtual environment"
@@ -34,7 +34,7 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmpaujdfo2b-config.yml train
+python -m torchtmpl.main configs/tmp62axc2mk-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
