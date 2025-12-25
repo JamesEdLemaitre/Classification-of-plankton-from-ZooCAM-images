@@ -87,7 +87,7 @@ logslurms
 # ════════════════════════════════════════════════════════════
 data/
 data_reannotated/
-denoising/preprocessed_data/
+scripts/denoising/preprocessed_data/
 
 # ════════════════════════════════════════════════════════════
 # MODEL CHECKPOINTS (partout, tous les sous-dossiers)

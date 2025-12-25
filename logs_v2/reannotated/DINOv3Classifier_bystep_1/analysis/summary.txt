@@ -1,0 +1,37 @@
+============================================================
+ANALYSIS SUMMARY
+============================================================
+
+Overall Accuracy: 0.9499
+Total Samples: 105925
+Number of Classes: 8
+Macro Avg F1: 0.9036
+Weighted Avg F1: 0.9501
+Class Imbalance Ratio: 322.46x
+Best Performing Size Group: Large (90-100%)
+Worst Performing Size Group: Small (0-10%)
+
+============================================================
+SIZE GROUP BREAKDOWN
+============================================================
+
+Small (0-10%):
+  Samples: 10598 (10.0%)
+  Accuracy: 0.9309
+  Surface range: 464 - 1392 pixels
+
+Medium- (10-50%):
+  Samples: 42392 (40.0%)
+  Accuracy: 0.9365
+  Surface range: 1394 - 3900 pixels
+
+Medium+ (50-90%):
+  Samples: 42345 (40.0%)
+  Accuracy: 0.9638
+  Surface range: 3901 - 16317 pixels
+
+Large (90-100%):
+  Samples: 10590 (10.0%)
+  Accuracy: 0.9675
+  Surface range: 16318 - 998712 pixels
+

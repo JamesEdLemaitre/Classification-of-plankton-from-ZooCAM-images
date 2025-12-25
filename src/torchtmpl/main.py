@@ -7,12 +7,17 @@ import os
 import pathlib
 from tqdm import tqdm
 import numpy as np
+import pandas as pd
 
 # External imports
 import yaml
 import wandb
 import torch
 import torchinfo.torchinfo as torchinfo
+import torchvision
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+import random
 
 # Local imports
 from . import data
@@ -532,6 +537,72 @@ def analyse_results(config, dataset, predictions, true_labels, class_names, mode
         
         logging.info(f"  Generated visualization for class {class_name} ({n_samples} samples)")
 
+    # ============================================
+    # 8. VISUALISATION DES ÉCHECS PAR CLASSE (Section Ajoutée)
+    # ============================================
+    logging.info("= Generating per-class FAILURE visualizations")
+
+    fail_dir = analysis_dir / "class_failures"
+    fail_dir.mkdir(exist_ok=True)
+
+    # On utilise 16 images pour faire une grille 4x4
+    n_fails_per_class = 16 
+
+    for class_idx, class_name in enumerate(class_names):
+        # Trouver les indices où la VRAIE classe est celle-ci, mais la prédiction est FAUSSE
+        # (True == Classe X) AND (Pred != Classe X)
+        fail_mask = (true_labels == class_idx) & (predictions != class_idx)
+        fail_indices = np.where(fail_mask)[0]
+
+        # S'il n'y a aucune erreur pour cette classe, on passe (Bravo !)
+        if len(fail_indices) == 0:
+            continue
+
+        # Sélectionner jusqu'à 16 erreurs aléatoirement
+        n_samples = min(n_fails_per_class, len(fail_indices))
+        selected_indices = np.random.choice(fail_indices, size=n_samples, replace=False)
+
+        # Créer la figure (4x4)
+        fig, axes = plt.subplots(4, 4, figsize=(16, 16))
+        fig.suptitle(f'FAILURES for Class: {class_name}\n(True Label = {class_idx})', 
+                    fontsize=16, fontweight='bold', color='red')
+        
+        # Aplatir les axes pour itérer facilement
+        axes_flat = axes.flatten()
+
+        for i in range(len(axes_flat)):
+            ax = axes_flat[i]
+            
+            if i < len(selected_indices):
+                # On a une image à afficher
+                idx = selected_indices[i]
+                
+                try:
+                    img = Image.open(filepaths[idx])
+                    ax.imshow(img)
+                except Exception as e:
+                    # En cas d'erreur de chargement
+                    ax.text(0.5, 0.5, "Error loading img", ha='center')
+                
+                pred_label = predictions[idx]
+                pred_name = class_names[pred_label] if pred_label < len(class_names) else str(pred_label)
+                
+                # Titre : Ce qu'on a prédit à tort
+                ax.set_title(f"Wrongly Pred: {pred_name}\n({pred_label})", 
+                            fontsize=10, color='red', fontweight='bold')
+                ax.axis('off')
+            else:
+                # Case vide (si moins de 16 erreurs)
+                ax.axis('off')
+
+        plt.tight_layout()
+        # Nom de fichier propre
+        safe_classname = "".join([c if c.isalnum() else "_" for c in class_name])
+        plt.savefig(fail_dir / f"fail_{class_idx}_{safe_classname}.png", dpi=150)
+        plt.close()
+
+    logging.info(f"✓ Analysis complete. Results saved in: {analysis_dir}")
+
     # 8. RÉSUMÉ GLOBAL
     logging.info("= Generating summary")
 
@@ -577,7 +648,8 @@ def analyse_results(config, dataset, predictions, true_labels, class_names, mode
 
 
 def test(config):
-    device, use_cuda = get_device()
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
     print(f"Evaluating on device: {device}")
 
     # Charger la configuration
