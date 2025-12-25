@@ -35,6 +35,4 @@ scheduler:
 # model:
 #   class: Linear
 model:
-  class: VanillaCNNV2
-  layer1_size : 32
-  num_layers : 5
+  class: CNN

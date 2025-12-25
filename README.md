@@ -47,7 +47,32 @@ Then running the simulation can be as simple as :
 python3 submit.py
 ```
 
-python3 ./submit-slurm.py
+python3 ./submit-slurm.py config_test1.yaml
+
+
+Suivre les logs du dernier job
+tail -f logslurms/slurm-*.out
+
+Ou spécifiquement un job (remplacez 115528 par le numéro)
+tail -f logslurms/slurm-115528_1.out
+
+Voir tout d'un coup
+cat logslurms/slurm-115528_1.outtail
+
+Voir les erreurs
+cat logslurms/slurm-115528_1.err
+
+Voir les jobs actuellement en cours
+squeue -u $USER
+
+Voir tous les jobs (y compris terminés)
+sacct -u $USER
+
+Voir les jobs avec plus de détails
+sacct -u $USER --format=JobID,JobName,State,Start,End,Elapsed
+
+Voir les 10 derniers jobs
+sacct -u $USER -n | head -10
 
 ## Testing the functions
 
