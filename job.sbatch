@@ -18,11 +18,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-# rsync -r --exclude logs --exclude configs --exclude denoising --exclude logslurms . $TMPDIR/code
+rsync -r --exclude logs --exclude configs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id b4c45881662c288a29e203379c3fbbc1ed91462d"
+echo "Checking out the correct version of the code commit_id d245f449a326fe838fc05ca5f96f299041297843"
 cd $TMPDIR/code
-git checkout b4c45881662c288a29e203379c3fbbc1ed91462d
+git checkout d245f449a326fe838fc05ca5f96f299041297843
 
 
 echo "Setting up the virtual environment"
@@ -34,7 +34,7 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmpg1epn38l-config.yml train
+python -m torchtmpl.main configs/tmpaujdfo2b-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
