@@ -22,7 +22,7 @@ logging:
   #   entity: sample_entity
   logdir: "./logs"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs/VanillaCNNV2_11/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs/CNN_0/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"

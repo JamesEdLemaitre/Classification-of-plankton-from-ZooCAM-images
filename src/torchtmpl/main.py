@@ -184,6 +184,16 @@ def train(config):
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
+    
+    # Training terminé
+    logging.info("=" * 60)
+    logging.info("✅ TRAINING COMPLETED!")
+    logging.info(f"Best model saved at: {logdir / 'best_model.pt'}")
+    logging.info(f"Best validation loss: {model_checkpoint.best}")
+    logging.info("=" * 60)
+    
+    if wandb_log is not None:
+        wandb.finish()
 
 
 def test(config):

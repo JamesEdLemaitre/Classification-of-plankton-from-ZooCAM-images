@@ -88,7 +88,7 @@ def VanillaCNNV2(cfg, input_size, num_classes):
 
 def CNN(cfg, input_size, num_classes):
     layers = []
-    layers.append(nn.Conv2d(in_channels=input_size[0], out_channels=60, kernel_size=3, padding=1))
+    layers.append(nn.Conv2d(in_channels=input_size[0], out_channels=1, kernel_size=3, padding=1))
     layers.append(nn.ReLU())
     layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
