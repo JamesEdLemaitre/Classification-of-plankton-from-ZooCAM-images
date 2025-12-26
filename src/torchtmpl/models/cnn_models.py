@@ -99,3 +99,23 @@ def CNN(cfg, input_size, num_classes):
     num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
     out_layers = [nn.Flatten(), nn.Linear(num_features, num_classes)]
     return nn.Sequential(CNN_model, *out_layers)
+
+
+def CNNmultilayer(cfg, input_size, num_classes):
+    layers = []
+
+    input = input_size[0]
+    num_kernel = 1
+    for i in range(cfg["num_layers"]):
+        layers.append(nn.Conv2d(in_channels=input, out_channels=num_kernel, kernel_size=3, padding=1))
+        layers.append(nn.ReLU())
+        layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+        input = num_kernel
+
+    CNN_model = nn.Sequential(*layers)
+    
+    probing_tensor = torch.zeros((1,) + input_size)
+    out_cnn = CNN_model(probing_tensor)
+    num_features = reduce(operator.mul, out_cnn.shape[1:], 1)
+    out_layers = [nn.Flatten(), nn.Linear(num_features, num_classes)]
+    return nn.Sequential(CNN_model, *out_layers)
