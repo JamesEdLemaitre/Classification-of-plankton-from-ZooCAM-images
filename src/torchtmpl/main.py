@@ -189,7 +189,7 @@ def train(config):
     logging.info("=" * 60)
     logging.info("✅ TRAINING COMPLETED!")
     logging.info(f"Best model saved at: {logdir / 'best_model.pt'}")
-    logging.info(f"Best validation loss: {model_checkpoint.best}")
+    logging.info(f"Best validation loss: {model_checkpoint.best_score}")
     logging.info("=" * 60)
     
     if wandb_log is not None:
