@@ -70,7 +70,7 @@ class ModelCheckpoint(object):
         return False
 
 
-def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
+def train(model, loader, f_loss, optimizer, device, disable_bar=False):
     """
     Train a model for one epoch, iterating over the loader
     using the f_loss to compute the loss and the optimizer
@@ -92,7 +92,7 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
     total_loss = 0
     num_samples = 0
 
-    pbar = tqdm(loader, desc="Training", leave=True)
+    pbar = tqdm(loader, desc="Training", leave=True, disable=disable_bar)
     
     for i, (inputs, targets) in enumerate(pbar):
         inputs, targets = inputs.to(device), targets.to(device)
@@ -116,7 +116,7 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
     return total_loss / num_samples
 
 
-def test(model, loader, f_loss, device):
+def test(model, loader, f_loss, device, disable_bar=False):
     model.eval()
 
     total_loss = 0
@@ -125,7 +125,7 @@ def test(model, loader, f_loss, device):
     all_preds = []
     all_probs = [] # Pour stocker les probabilités (softmax)
 
-    pbar = tqdm(loader, desc="Validation", unit="batch", leave=False, position=1)
+    pbar = tqdm(loader, desc="Validation", unit="batch", leave=False, position=1, disable=disable_bar)
 
     with torch.no_grad():
         for (inputs, targets) in pbar:

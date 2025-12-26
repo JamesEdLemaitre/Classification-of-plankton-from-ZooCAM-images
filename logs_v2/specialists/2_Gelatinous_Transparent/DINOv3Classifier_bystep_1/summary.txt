@@ -1,0 +1,59 @@
+Logdir : logs_v2/specialists/2_Gelatinous_Transparent/DINOv3Classifier_bystep_1
+## Command 
+/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/src/torchtmpl/main.py config_2_Gelatinous_Transparent.yaml train
+
+ Config : {'data': {'batch_size': 64, 'dataset_size_divider': 1, 'images_resize': 224, 'num_workers': 8, 'testpath': None, 'trainpath': './data/data_reannotated/train/2_Gelatinous_Transparent', 'transformations_version': 'basic', 'use_rgb': True, 'valid_ratio': 0.1}, 'logging': {'logdir': './logs_v2/specialists/2_Gelatinous_Transparent', 'model_path': './logs_v2/specialists/2_Gelatinous_Transparent/best_model.pt', 'results_path': './results'}, 'loss': 'CrossEntropyLoss', 'model': {'class': 'DINOv3Classifier_bystep', 'dropout': 0.2, 'head_hidden_dims': [512, 256], 'model_size': 'small'}, 'optim': {'algo': 'AdamW', 'params': {'lr': 0.001}}, 'phases': [{'epochs': 10, 'lr': 0.001, 'name': 'training_head'}, {'epochs': 25, 'lr': 0.0001, 'name': 'training_last_4_layers', 'unfreeze': True, 'unfreeze_layers': 4}, {'epochs': 50, 'lr': 1e-05, 'name': 'training_full_backbone', 'unfreeze': 'all'}], 'scheduler': {'class': 'ReduceLROnPlateau', 'factor': 0.5, 'min_lr': 1e-06, 'mode': 'min', 'patience': 3}, 'training': {'style': 'specialist'}} 
+
+## Summary of the model architecture
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+DINOv3WithProgressiveUnfreeze                 [64, 16]                  --
+├─Eva: 1-1                                    --                        1,920
+│    └─PatchEmbed: 2-1                        [64, 14, 14, 384]         --
+│    │    └─Conv2d: 3-1                       [64, 384, 14, 14]         (295,296)
+│    │    └─Identity: 3-2                     [64, 14, 14, 384]         --
+│    └─Dropout: 2-2                           [64, 201, 384]            --
+│    └─Identity: 2-3                          [64, 201, 384]            --
+│    └─ModuleList: 2-4                        --                        --
+│    │    └─EvaBlock: 3-3                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-4                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-5                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-6                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-7                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-8                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-9                     [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-10                    [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-11                    [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-12                    [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-13                    [64, 201, 384]            (1,774,080)
+│    │    └─EvaBlock: 3-14                    [64, 201, 384]            (1,774,080)
+│    └─LayerNorm: 2-5                         [64, 201, 384]            (768)
+├─Sequential: 1-2                             [64, 16]                  --
+│    └─LayerNorm: 2-6                         [64, 384]                 768
+│    └─Linear: 2-7                            [64, 512]                 197,120
+│    └─GELU: 2-8                              [64, 512]                 --
+│    └─Dropout: 2-9                           [64, 512]                 --
+│    └─Linear: 2-10                           [64, 256]                 131,328
+│    └─GELU: 2-11                             [64, 256]                 --
+│    └─Dropout: 2-12                          [64, 256]                 --
+│    └─Linear: 2-13                           [64, 16]                  4,112
+===============================================================================================
+Total params: 21,920,272
+Trainable params: 333,328
+Non-trainable params: 21,586,944
+Total mult-adds (Units.GIGABYTES): 5.09
+===============================================================================================
+Input size (MB): 38.54
+Forward/backward pass size (MB): 5295.05
+Params size (MB): 87.64
+Estimated Total Size (MB): 5421.23
+===============================================================================================
+
+## Loss
+
+CrossEntropyLoss()
+
+## Datasets : 
+Train : <torchtmpl.data.SpecialistDataset object at 0x7f3b771afa90>
+Validation : <torchtmpl.data.SpecialistDataset object at 0x7f3b74987850>

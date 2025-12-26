@@ -31,6 +31,8 @@ def train(config):
     # will work constantly:
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    disable_bar = os.getenv("DISABLE_TQDM") == "True"
+    print("Will be disabling tqdm bars:", disable_bar)
     logging.info(f"Training on device: {device}")
     training_style = config["training"].get("style", "standard")
     phases = config.get("phases", [{"epochs": config.get("nepochs", 1), "unfreeze": "none"}])
@@ -152,15 +154,16 @@ def train(config):
             desc="Training", 
             unit="epoch",
             position=0,
-            leave=True)
+            leave=True,
+            disable=disable_bar)
 
         # Training loop
         for e in epoch_pbar:
             # Train 1 epoch
-            train_loss = utils.train(model, train_loader, loss, optimizer, device)
+            train_loss = utils.train(model, train_loader, loss, optimizer, device, disable_bar=disable_bar)
 
             # Test
-            test_metrics = utils.test(model, valid_loader, loss, device)
+            test_metrics = utils.test(model, valid_loader, loss, device, disable_bar=disable_bar)
 
             # Scheduler step
             if scheduler is not None:
@@ -662,6 +665,7 @@ def test(config):
     augmentations_v2 = data_config.get("augmentations_v2", False)
     dataset_size_divider = data_config.get("dataset_size_divider", 6)
     valid_ratio = data_config["valid_ratio"]
+    disable_bar = os.getenv("DISABLE_TQDM") == "True"
 
     # Récupération du mode (standard par défaut)
     dataset_mode = data_config.get("dataset_mode", "standard") 
@@ -840,7 +844,7 @@ def test(config):
     valid_true_labels = []
 
     with torch.no_grad():
-        for images, labels in tqdm(valid_loader, desc="Validation Inference", unit="batch"):
+        for images, labels in tqdm(valid_loader, desc="Validation Inference", unit="batch", disable=disable_bar):
             images = images.to(device)
             outputs = model(images)
             _, preds = torch.max(outputs, 1)
@@ -871,7 +875,7 @@ def test(config):
         test_filenames = []
 
         with torch.no_grad():
-            for images, _ in tqdm(test_loader, desc="Test Inference", unit="batch"):
+            for images, _ in tqdm(test_loader, desc="Test Inference", unit="batch", disable=disable_bar):
                 images = images.to(device)
                 outputs = model(images)
                 _, preds = torch.max(outputs, 1)
@@ -922,6 +926,7 @@ def validate(config):
     model_config = config["model"]
     results_path = config["logging"].get("results_path", "./results")
     training_style = config["training"].get("style", "standard")
+    disable_bar = os.getenv("DISABLE_TQDM") == "True"
     
     os.makedirs(results_path, exist_ok=True)
 
@@ -980,7 +985,7 @@ def validate(config):
     valid_true_labels = []
 
     with torch.no_grad():
-        for images, labels in tqdm(valid_loader, desc="Validation Inference"):
+        for images, labels in tqdm(valid_loader, desc="Validation Inference", disable=disable_bar):
             images = images.to(device)
             outputs = model(images)
             _, preds = torch.max(outputs, 1)
@@ -1036,7 +1041,7 @@ def validate(config):
         test_filenames = []
 
         with torch.no_grad():
-            for images, _ in tqdm(test_loader, desc="Test Inference"):
+            for images, _ in tqdm(test_loader, desc="Test Inference", disable=disable_bar):
                 images = images.to(device)
                 outputs = model(images)
                 _, preds = torch.max(outputs, 1)
