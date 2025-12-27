@@ -36,6 +36,13 @@ python -m pip install .
 echo "Training"
 python -m torchtmpl.main configs/tmptv5_6vf2-config.yml train
 
+
+echo "Testing and generating submission"
+python -m torchtmpl.main configs/tmptv5_6vf2-config.yml test
+
+echo "Copying results back"
+cp -r $TMPDIR/code/results/* $current_dir/results/
+
 if [[ $? != 0 ]]; then
     exit -1
 fi
