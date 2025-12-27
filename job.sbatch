@@ -18,11 +18,11 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
+# rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 17ccb05e2a9bb78f2808c7bd54e105700a9c0db5"
+echo "Checking out the correct version of the code commit_id 97f1a61c97e5c5e3fcfd01db3d94ac02a9555dbf"
 cd $TMPDIR/code
-git checkout 17ccb05e2a9bb78f2808c7bd54e105700a9c0db5
+git checkout 97f1a61c97e5c5e3fcfd01db3d94ac02a9555dbf
 
 
 echo "Setting up the virtual environment"
@@ -34,7 +34,7 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmp9ly9yakf-config.yml train
+python -m torchtmpl.main configs/tmpd64h094l-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
