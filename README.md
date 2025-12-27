@@ -74,6 +74,12 @@ sacct -u $USER --format=JobID,JobName,State,Start,End,Elapsed
 Voir les 10 derniers jobs
 sacct -u $USER -n | head -10
 
+Annuler un job spécifique
+scancel <JobID>
+
+Annuler tous vos jobs en cours
+scancel -u $USER
+
 ## Testing the functions
 
 Every module/script is equiped with some test functions. Although these are not unitary tests per se, they nonetheless illustrate how to test the provided functions.
