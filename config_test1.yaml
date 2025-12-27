@@ -22,6 +22,7 @@ logging:
   #   entity: sample_entity
   logdir: "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/logs" 
   results_path: "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/results"
+  model_path : "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/logs/CNN_0/best_model.pt"
   
 scheduler:
   class: "ReduceLROnPlateau"
