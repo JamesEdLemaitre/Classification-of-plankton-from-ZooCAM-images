@@ -50,6 +50,14 @@ python -m torchtmpl.main configs/{config_filename} train
 if [[ $? != 0 ]]; then
     exit -1
 fi
+
+echo "Generating submission file"
+python -m torchtmpl.inference configs/{config_filename}
+
+echo "Copying results back"
+rsync -r logs/ $current_dir/logs/
+rsync -r results/ $current_dir/results/
+
 """
 
 
