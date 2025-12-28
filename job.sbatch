@@ -20,9 +20,9 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id bf6ee3714a482dec35f0b420a508fb4ae513350f"
+echo "Checking out the correct version of the code commit_id 90fefc82253144b9acaa220a7643144401053c33"
 cd $TMPDIR/code
-git checkout bf6ee3714a482dec35f0b420a508fb4ae513350f
+git checkout 90fefc82253144b9acaa220a7643144401053c33
 
 
 echo "Setting up the virtual environment"
@@ -34,8 +34,16 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmpmae1ku1x-config.yml train
+python -m torchtmpl.main configs/tmpyb1vmlm9-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
+
+echo "Generating submission file"
+python -m torchtmpl.inference configs/tmpyb1vmlm9-config.yml
+
+echo "Copying results back"
+rsync -r logs/ $current_dir/logs/
+rsync -r results/ $current_dir/results/
+

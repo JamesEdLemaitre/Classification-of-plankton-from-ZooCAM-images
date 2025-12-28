@@ -19,7 +19,7 @@ def makejob(commit_id, configpath, nruns):
 #SBATCH --error=logslurms/slurm-%A_%a.err
 #SBATCH --array=1-{nruns}
 
-current_dir=`pwd`
+current_dir="$(pwd)"
 export PATH=$PATH:~/.local/bin
 
 echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
@@ -32,6 +32,7 @@ mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 echo "Checking out the correct version of the code commit_id {commit_id}"
+# on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
 git checkout {commit_id}
 
