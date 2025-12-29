@@ -53,7 +53,7 @@ if [[ $? != 0 ]]; then
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.inference configs/{config_filename}
+python -m torchtmpl.main configs/{config_filename} test
 
 echo "Copying results back"
 rsync -r logs/ $current_dir/logs/

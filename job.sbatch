@@ -8,7 +8,7 @@
 #SBATCH --error=logslurms/slurm-%A_%a.err
 #SBATCH --array=1-1
 
-current_dir=`pwd`
+current_dir="$(pwd)"
 export PATH=$PATH:~/.local/bin
 
 echo "Session " ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
@@ -20,9 +20,10 @@ date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 90fefc82253144b9acaa220a7643144401053c33"
+echo "Checking out the correct version of the code commit_id ca8b2489174b9beb1d742e53c0bac27a6a1b53e1"
+# on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout 90fefc82253144b9acaa220a7643144401053c33
+git checkout ca8b2489174b9beb1d742e53c0bac27a6a1b53e1
 
 
 echo "Setting up the virtual environment"
@@ -34,14 +35,14 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmpyb1vmlm9-config.yml train
+python -m torchtmpl.main configs/tmpdz1tu0f6-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.inference configs/tmpyb1vmlm9-config.yml
+python -m torchtmpl.inference configs/tmpdz1tu0f6-config.yml
 
 echo "Copying results back"
 rsync -r logs/ $current_dir/logs/
