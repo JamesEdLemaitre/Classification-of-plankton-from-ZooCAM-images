@@ -176,7 +176,7 @@ def train(config):
             updated = model_checkpoint.update(test_metrics["f1"])
             logging.info(
                 f"[Phase {phase_idx+1}-{e+1}/{phase['epochs']}] loss: {test_metrics['loss']:.3f} "
-                f"{'[>> BETTER <<]' if updated else ''} | {test_metrics}"
+                f"{'[>> BETTER <<]' if updated else ''} | {test_metrics} | Current lr: {optimizer.param_groups[0]['lr']}"
             )
 
             # Update the dashboard

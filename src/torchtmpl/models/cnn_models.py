@@ -7,6 +7,7 @@ import operator
 # External imports
 import torch
 import torch.nn as nn
+import timm
 
 
 def conv_relu_bn(cin, cout):

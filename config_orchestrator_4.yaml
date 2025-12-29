@@ -1,0 +1,72 @@
+data:
+  # --- CES CHEMINS SERONT REMPLACÉS PAR L'ORCHESTRATEUR ---
+  trainpath: null
+  testpath: null  
+  batch_size: 64  
+  num_workers: 8
+  valid_ratio: 0.15
+  images_resize: 224
+  dataset_size_divider: null #### DYNAMIQUE: Fait en sorte de ne pas dépasser un seuil indiqué dans orchestrator.py
+  use_rgb: True
+  transformations_version: basic 
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.001
+
+loss: "CrossEntropyLoss"
+
+logging:
+  logdir: null     ### DYNAMIQUE : Sera ./logs/specialists/CLASSE
+  results_path: "./results"
+  model_path: null ### DYNAMIQUE : Sera ./logs/specialists/CLASSE/best_model.pt
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"        
+  factor: 0.5      
+  patience: 3
+  min_lr: 1.0e-6   
+
+model:
+  class: TimmClassifier
+  model_name: "resnext50_32x4d"
+  head_hidden_dims: [1024, 512, 256]
+  dropout: 0.2
+
+training:
+  style: specialist 
+
+phases:
+  # PHASE 1 : Entraînement Tête
+  - name: "training_head"
+    epochs: 20
+    lr: 0.001 
+
+  # PHASE 2 : Dégel partiel
+  - name: "training_last_5_layers"
+    epochs: 30
+    lr: 0.001
+    unfreeze: true
+    unfreeze_layers: 5
+
+  # PHASE 3 : Dégel partiel
+  - name: "training_last_20_layers"
+    epochs: 30
+    lr: 0.0001
+    unfreeze: true
+    unfreeze_layers: 20
+
+  # PHASE 4 : Dégel partiel
+  - name: "training_last_35_layers"
+    epochs: 40
+    lr: 0.0001
+    unfreeze: true
+    unfreeze_layers: 35
+
+  # PHASE 3 : Dégel total
+  - name: "training_full_backbone"
+    epochs: 50
+    lr: 0.00001
+    unfreeze: "all"

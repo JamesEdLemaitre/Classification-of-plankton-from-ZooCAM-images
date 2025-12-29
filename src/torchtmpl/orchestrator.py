@@ -9,11 +9,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 MAX_CONCURRENT_JOBS = 2       
 MAX_IMAGES_PER_TRAIN = 150000 
-PYTHON_EXEC = "python"        
+PYTHON_EXEC = "python"       
+
+train_num = 2
 
 TRAIN_MODULE = "torchtmpl.main" 
-TEMPLATE_PATH = "config_orchestrator_0.yaml" 
-ORCHESTRATION_LOG_DIR = "./results/orchestration"
+TEMPLATE_PATH = f"config_orchestrator_{train_num}.yaml" 
+ORCHESTRATION_LOG_DIR = f"./results/orchestration_{train_num}"
 
 CLASSES_LIST = [
     "1_Copepoda_Torpille",
@@ -41,8 +43,8 @@ def count_images(directory):
 def run_training_job(class_name):
     print(f"⏳ [Pending] {class_name}")
 
-    train_dir = f"./data/data_reannotated/train/{class_name}"
-    safe_log_dir = f"./logs_v2/specialists/{class_name}"
+    train_dir = f"./data/data_reannotated_v2/train/{class_name}"
+    safe_log_dir = f"./logs_v2/specialists_{train_num}/{class_name}"
     log_file_path = os.path.join(ORCHESTRATION_LOG_DIR, f"{class_name}.log")
 
     num_images = count_images(train_dir)

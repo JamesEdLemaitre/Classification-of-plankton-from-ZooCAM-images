@@ -1,0 +1,73 @@
+Logdir : logs_v2/specialists_4/2_Gelatinous_Transparent/TimmClassifier_0
+## Command 
+/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/src/torchtmpl/main.py config_2_Gelatinous_Transparent.yaml train
+
+ Config : {'data': {'batch_size': 64, 'dataset_size_divider': 1, 'images_resize': 224, 'num_workers': 8, 'testpath': None, 'trainpath': './data/data_reannotated_v2/train/2_Gelatinous_Transparent', 'transformations_version': 'basic', 'use_rgb': True, 'valid_ratio': 0.15}, 'logging': {'logdir': './logs_v2/specialists_4/2_Gelatinous_Transparent', 'model_path': './logs_v2/specialists_4/2_Gelatinous_Transparent/best_model.pt', 'results_path': './results'}, 'loss': 'CrossEntropyLoss', 'model': {'class': 'TimmClassifier', 'dropout': 0.2, 'head_hidden_dims': [1024, 512, 256], 'model_name': 'resnext50_32x4d'}, 'optim': {'algo': 'AdamW', 'params': {'lr': 0.001}}, 'phases': [{'epochs': 20, 'lr': 0.001, 'name': 'training_head'}, {'epochs': 30, 'lr': 0.001, 'name': 'training_last_5_layers', 'unfreeze': True, 'unfreeze_layers': 5}, {'epochs': 30, 'lr': 0.0001, 'name': 'training_last_20_layers', 'unfreeze': True, 'unfreeze_layers': 20}, {'epochs': 40, 'lr': 0.0001, 'name': 'training_last_35_layers', 'unfreeze': True, 'unfreeze_layers': 35}, {'epochs': 50, 'lr': 1e-05, 'name': 'training_full_backbone', 'unfreeze': 'all'}], 'scheduler': {'class': 'ReduceLROnPlateau', 'factor': 0.5, 'min_lr': 1e-06, 'mode': 'min', 'patience': 3}, 'training': {'style': 'specialist'}} 
+
+## Summary of the model architecture
+===============================================================================================
+Layer (type:depth-idx)                        Output Shape              Param #
+===============================================================================================
+TimmClassifierModel                           [64, 14]                  --
+├─ResNet: 1-1                                 [64, 2048]                --
+│    └─Conv2d: 2-1                            [64, 64, 112, 112]        9,408
+│    └─BatchNorm2d: 2-2                       [64, 64, 112, 112]        128
+│    └─ReLU: 2-3                              [64, 64, 112, 112]        --
+│    └─MaxPool2d: 2-4                         [64, 64, 56, 56]          --
+│    └─Sequential: 2-5                        [64, 256, 56, 56]         --
+│    │    └─Bottleneck: 3-1                   [64, 256, 56, 56]         63,488
+│    │    └─Bottleneck: 3-2                   [64, 256, 56, 56]         71,168
+│    │    └─Bottleneck: 3-3                   [64, 256, 56, 56]         71,168
+│    └─Sequential: 2-6                        [64, 512, 28, 28]         --
+│    │    └─Bottleneck: 3-4                   [64, 512, 28, 28]         349,184
+│    │    └─Bottleneck: 3-5                   [64, 512, 28, 28]         282,624
+│    │    └─Bottleneck: 3-6                   [64, 512, 28, 28]         282,624
+│    │    └─Bottleneck: 3-7                   [64, 512, 28, 28]         282,624
+│    └─Sequential: 2-7                        [64, 1024, 14, 14]        --
+│    │    └─Bottleneck: 3-8                   [64, 1024, 14, 14]        1,390,592
+│    │    └─Bottleneck: 3-9                   [64, 1024, 14, 14]        1,126,400
+│    │    └─Bottleneck: 3-10                  [64, 1024, 14, 14]        1,126,400
+│    │    └─Bottleneck: 3-11                  [64, 1024, 14, 14]        1,126,400
+│    │    └─Bottleneck: 3-12                  [64, 1024, 14, 14]        1,126,400
+│    │    └─Bottleneck: 3-13                  [64, 1024, 14, 14]        1,126,400
+│    └─Sequential: 2-8                        [64, 2048, 7, 7]          --
+│    │    └─Bottleneck: 3-14                  [64, 2048, 7, 7]          5,550,080
+│    │    └─Bottleneck: 3-15                  [64, 2048, 7, 7]          4,497,408
+│    │    └─Bottleneck: 3-16                  [64, 2048, 7, 7]          4,497,408
+│    └─SelectAdaptivePool2d: 2-9              [64, 2048]                --
+│    │    └─AdaptiveAvgPool2d: 3-17           [64, 2048, 1, 1]          --
+│    │    └─Flatten: 3-18                     [64, 2048]                --
+│    └─Identity: 2-10                         [64, 2048]                --
+├─Sequential: 1-2                             [64, 14]                  --
+│    └─Linear: 2-11                           [64, 1024]                2,098,176
+│    └─ReLU: 2-12                             [64, 1024]                --
+│    └─BatchNorm1d: 2-13                      [64, 1024]                2,048
+│    └─Dropout: 2-14                          [64, 1024]                --
+│    └─Linear: 2-15                           [64, 512]                 524,800
+│    └─ReLU: 2-16                             [64, 512]                 --
+│    └─BatchNorm1d: 2-17                      [64, 512]                 1,024
+│    └─Dropout: 2-18                          [64, 512]                 --
+│    └─Linear: 2-19                           [64, 256]                 131,328
+│    └─ReLU: 2-20                             [64, 256]                 --
+│    └─BatchNorm1d: 2-21                      [64, 256]                 512
+│    └─Dropout: 2-22                          [64, 256]                 --
+│    └─Linear: 2-23                           [64, 14]                  3,598
+===============================================================================================
+Total params: 25,741,390
+Trainable params: 25,741,390
+Non-trainable params: 0
+Total mult-adds (Units.GIGABYTES): 270.80
+===============================================================================================
+Input size (MB): 38.54
+Forward/backward pass size (MB): 14747.97
+Params size (MB): 102.97
+Estimated Total Size (MB): 14889.47
+===============================================================================================
+
+## Loss
+
+CrossEntropyLoss()
+
+## Datasets : 
+Train : <torchtmpl.data.SpecialistDataset object at 0x7f541d885bd0>
+Validation : <torchtmpl.data.SpecialistDataset object at 0x7f5410b9edd0>
