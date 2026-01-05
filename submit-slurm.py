@@ -32,7 +32,7 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude denoising --exclude logslurms . $TMPDIR/code
+rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 # --exclude logs
 
@@ -51,8 +51,8 @@ python -m pip install .
 
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
-# echo "Training"
-# python -m torchtmpl.main configs/{config_filename} train
+echo "Training"
+python -m torchtmpl.main configs/{config_filename} train
 
 if [[ $? != 0 ]]; then
     exit -1
