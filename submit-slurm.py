@@ -32,7 +32,9 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
+rsync -r --exclude denoising --exclude logslurms . $TMPDIR/code
+
+# --exclude logs
 
 echo "Checking out the correct version of the code commit_id {commit_id}"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
