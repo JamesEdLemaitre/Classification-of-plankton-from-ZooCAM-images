@@ -12,7 +12,8 @@ dependencies = [
     "tqdm>=4.65.0",
     "matplotlib>=3.7.1",
     "typing-extensions>=4.8.0",
-    "timm"
+    "timm",
+    "scikit-learn"
 ]
 
 [options]
