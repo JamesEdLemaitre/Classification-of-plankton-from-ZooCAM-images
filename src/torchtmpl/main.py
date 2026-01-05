@@ -20,6 +20,8 @@ from . import data
 from . import models
 from . import optim
 from . import utils
+import matplotlib.pyplot as plt
+import numpy as np
 
 def get_device(gpu_id=None):
     if torch.cuda.is_available():
@@ -140,6 +142,10 @@ def train(config):
         model, str(logdir / "best_model.pt"), min_is_best=True
     )
 
+    # Listes pour stocker les losses
+    train_losses = []
+    valid_losses = []
+
     epoch_pbar = tqdm(
         range(config["nepochs"]), 
         desc="Training", 
@@ -152,9 +158,11 @@ def train(config):
     for e in epoch_pbar:
         # Train 1 epoch
         train_loss = utils.train(model, train_loader, loss, optimizer, device)
+        train_losses.append(train_loss)
 
         # Test
         test_loss, test_metrics = utils.test(model, valid_loader, loss, device)
+        valid_losses.append(test_loss)
 
         if scheduler is not None:
             # Différent selon le type de scheduler
@@ -169,10 +177,11 @@ def train(config):
 
         updated = model_checkpoint.update(test_loss)
         logging.info(
-            "[%d/%d] Test loss : %.3f %s | metrics: %s"
+            "[%d/%d] Train loss: %.3f | Validation loss : %.3f %s | metrics: %s"
             % (
                 e,
                 config["nepochs"],
+                train_loss,
                 test_loss,
                 "[>> BETTER <<]" if updated else "",
                 test_metrics,
@@ -184,6 +193,27 @@ def train(config):
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
+
+    # Créer et sauvegarder le graphique des losses
+    plt.figure(figsize=(10, 6))
+    epochs = np.arange(1, len(train_losses) + 1)
+    plt.plot(epochs, train_losses, 'b-', label='Train Loss', linewidth=2)
+    plt.plot(epochs, valid_losses, 'r-', label='Validation Loss', linewidth=2)
+    plt.xlabel('Epoch', fontsize=12)
+    plt.ylabel('Loss', fontsize=12)
+    plt.title('Training and Validation Loss', fontsize=14)
+    plt.legend(fontsize=10)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    # Sauvegarder le graphique
+    plot_path = logdir / "loss_curves.png"
+    plt.savefig(plot_path, dpi=300)
+    logging.info(f"Loss curves saved to {plot_path}")
+    
+    # Afficher le graphique (si vous êtes en mode interactif)
+    # plt.show()
+    plt.close()
     
     # Training terminé
     logging.info("=" * 60)
@@ -328,10 +358,7 @@ def test(config):
         logging.info(f"  {class_name}: {count} ({percentage:.2f}%)")
     
     return output_file
-
-
-
-
+    
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(message)s")
