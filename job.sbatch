@@ -21,14 +21,14 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-rsync -r --exclude denoising --exclude logslurms . $TMPDIR/code
+rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 # --exclude logs
 
-echo "Checking out the correct version of the code commit_id aa6b2671c70c063348635e7b9f6047d9ad4eedfa"
+echo "Checking out the correct version of the code commit_id e851b81692a639aef8366b54d4434d401f11a390"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout aa6b2671c70c063348635e7b9f6047d9ad4eedfa
+git checkout e851b81692a639aef8366b54d4434d401f11a390
 
 
 echo "Setting up the virtual environment"
@@ -40,15 +40,15 @@ python -m pip install .
 
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
-# echo "Training"
-# python -m torchtmpl.main configs/tmpgjz8hq9x-config.yml train
+echo "Training"
+python -m torchtmpl.main configs/tmp9umjsg7v-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/tmpgjz8hq9x-config.yml test
+python -m torchtmpl.main configs/tmp9umjsg7v-config.yml test
 
 echo "Copying results back"
 mkdir -p "$current_dir/logs"
