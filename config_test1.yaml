@@ -22,10 +22,10 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/logs" 
-  results_path: "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/results"
-  model_path : "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/logs/CNN_0/best_model.pt"
-  
+  logdir: "./logs" 
+  results_path: "./results"
+  model_path: "./logs/CNN_0/best_model.pt"
+
 scheduler:
   class: "ReduceLROnPlateau"
   mode: "min"        
