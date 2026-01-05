@@ -26,8 +26,8 @@ echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
 
 echo "Running on " $(hostname)
 
-echo "Copying dataset"
-rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
+# echo "Copying dataset"
+# rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
 
 echo "Copying the source directory and data"
 date
@@ -48,6 +48,7 @@ source venv/bin/activate
 python -m pip install .
 
 
+#IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense
 echo "Training"
 python -m torchtmpl.main configs/{config_filename} train
 
