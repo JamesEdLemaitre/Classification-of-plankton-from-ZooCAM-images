@@ -104,13 +104,14 @@ def CNN(cfg, input_size, num_classes):
 def CNNmultilayer(cfg, input_size, num_classes):
     layers = []
 
-    input = input_size[0]
-    num_kernel = 1
+    input_channels = input_size[0]
+    num_kernel = cfg["num_kernels"]
     for i in range(cfg["num_layers"]):
-        layers.append(nn.Conv2d(in_channels=input, out_channels=num_kernel, kernel_size=3, padding=1))
+        layers.append(nn.Conv2d(in_channels=input_channels, out_channels=num_kernel, kernel_size=3, padding=1))
         layers.append(nn.ReLU())
         layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-        input = num_kernel
+        input_channels = num_kernel
+        num_kernel *= 2
 
     CNN_model = nn.Sequential(*layers)
     

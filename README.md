@@ -94,7 +94,7 @@ python -m pip install .
 python -m torchtmpl.models
 ```
 --FAIRE Directement
-python -m pip install .
+python3 -m pip install .
 cd "/usr/users/sdim/sdim_23/Desktop/Deep learning/Projet/kaggle_challenge_sdi/src"
 python3 -m torchtmpl.models
 
