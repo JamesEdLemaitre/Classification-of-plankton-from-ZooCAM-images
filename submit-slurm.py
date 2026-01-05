@@ -26,6 +26,9 @@ echo "Session " ${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}
 
 echo "Running on " $(hostname)
 
+echo "Copying dataset"
+rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
+
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code

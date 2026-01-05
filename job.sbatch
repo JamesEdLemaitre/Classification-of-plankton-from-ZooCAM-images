@@ -18,12 +18,12 @@ echo "Running on " $(hostname)
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
-# rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
+rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 9f39fbbd5821c2aeed25e5d80d9d243712c6b3f2"
+echo "Checking out the correct version of the code commit_id 30a67dc9df8e07db5e936edaeb0838fd22efa56b"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout 9f39fbbd5821c2aeed25e5d80d9d243712c6b3f2
+git checkout 30a67dc9df8e07db5e936edaeb0838fd22efa56b
 
 
 echo "Setting up the virtual environment"
@@ -35,14 +35,14 @@ python -m pip install .
 
 
 echo "Training"
-python -m torchtmpl.main configs/tmphyzbde_y-config.yml train
+python -m torchtmpl.main configs/tmpjzk07vor-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/tmphyzbde_y-config.yml test
+python -m torchtmpl.main configs/tmpjzk07vor-config.yml test
 
 echo "Copying results back"
 rsync -r logs/ $current_dir/logs/

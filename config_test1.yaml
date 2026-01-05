@@ -1,8 +1,8 @@
 
 
 data:
-  trainpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/train'  
-  testpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/test'
+  trainpath: '../data/train'    #car on est dans le TMPDIR normalement
+  testpath: '..TMPDIR/data/test' 
   batch_size: 256
   num_workers: 8
   valid_ratio: 0.2
