@@ -15,18 +15,18 @@ echo "Session " ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
 
 echo "Running on " $(hostname)
 
-echo "Copying dataset"
-rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
+# echo "Copying dataset"
+# rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
 
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
 rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
-echo "Checking out the correct version of the code commit_id 14b35994fe807a8ef3480a472e75cd58aec463ef"
+echo "Checking out the correct version of the code commit_id 4381d8ea93a4ab2824dad127504058fa141b420b"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout 14b35994fe807a8ef3480a472e75cd58aec463ef
+git checkout 4381d8ea93a4ab2824dad127504058fa141b420b
 
 
 echo "Setting up the virtual environment"
@@ -37,15 +37,16 @@ source venv/bin/activate
 python -m pip install .
 
 
+#IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense
 echo "Training"
-python -m torchtmpl.main configs/tmprd3zn_cl-config.yml train
+python -m torchtmpl.main configs/tmpntjax8c7-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/tmprd3zn_cl-config.yml test
+python -m torchtmpl.main configs/tmpntjax8c7-config.yml test
 
 echo "Copying results back"
 rsync -r logs/ $current_dir/logs/
