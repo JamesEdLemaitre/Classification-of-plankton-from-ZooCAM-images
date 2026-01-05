@@ -60,8 +60,20 @@ echo "Generating submission file"
 python -m torchtmpl.main configs/{config_filename} test
 
 echo "Copying results back"
-rsync -r logs/ "$current_dir/logs/"
-rsync -r results/ "$current_dir/results/"
+mkdir -p "$current_dir/logs"
+mkdir -p "$current_dir/results"
+
+if [ -d logs ]; then
+    rsync -r logs/ "$current_dir/logs/"
+else
+    echo "Warning: logs directory not found"
+fi
+
+if [ -d results ]; then
+    rsync -r results/ "$current_dir/results/"
+else
+    echo "Warning: results directory not found"
+fi
 
 """
 
