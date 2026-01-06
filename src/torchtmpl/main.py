@@ -189,7 +189,7 @@ def train(config):
         )
 
         # Update the dashboard
-        metrics = {"train_CE": train_loss, "test_CE": test_loss, **test_metrics, "learning_rate": optimizer.param_groups[0]['lr']}
+        metrics = {"train_CE": train_loss, "validation_CE": test_loss, **test_metrics, "learning_rate": optimizer.param_groups[0]['lr']}
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
