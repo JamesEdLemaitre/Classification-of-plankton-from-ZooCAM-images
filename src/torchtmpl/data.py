@@ -16,6 +16,7 @@ import torchvision.transforms.functional as F
 from torchvision.utils import make_grid
 from PIL import Image
 from torch.utils.data import WeightedRandomSampler
+from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 
@@ -216,12 +217,16 @@ def get_dataloaders(data_config, training_style="standard"):
 
     # Splitting dataset for train and test
     random.seed(random_seed)
-    indices = list(range(len(full_dataset_structure)))
-    random.shuffle(indices)
-    
-    num_valid = int(valid_ratio * len(full_dataset_structure))
-    test_indices = indices[:num_valid]
-    train_indices = indices[num_valid:]
+    targets = np.array(full_dataset_structure.targets)
+    indices = np.arange(len(targets))
+
+    # Stratify assure que la proportion des classes est respectée dans train et valid
+    train_indices, test_indices = train_test_split(
+        indices, 
+        test_size=valid_ratio, 
+        stratify=targets, 
+        random_state=random_seed
+    )
 
     dataset_train_obj = get_dataset(data_config["trainpath"], train_transform, training_style)
     dataset_valid_obj = get_dataset(data_config["trainpath"], test_transform, training_style)
@@ -267,7 +272,7 @@ def get_dataloaders(data_config, training_style="standard"):
     num_classes = len(classes_names)
     input_size = tuple(full_dataset_structure[0][0].shape)
 
-    return train_loader, test_loader, input_size, num_classes, class_weights_torch
+    return train_loader, test_loader, input_size, num_classes, class_weights_torch, classes_names
 
 def test_dataloaders_and_analyse_dataset():
     print("_"*70)

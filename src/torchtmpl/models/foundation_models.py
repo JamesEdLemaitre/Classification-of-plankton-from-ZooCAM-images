@@ -18,7 +18,7 @@ def DINOv3Classifier_bystep(cfg, input_size, num_classes):
     print(f"Making model with head: {head_hidden_dims}")
 
     model_names = {
-        'small': 'vit_small_patch16_dinov3.lvd1689m',
+        'small': 'hf_hub:timm/vit_small_patch16_dinov3.lvd1689m',
         'small_plus': 'vit_small_plus_patch16_dinov3.lvd1689m',
         'base': 'vit_base_patch16_dinov3.lvd1689m',
         'large': 'vit_large_patch16_dinov3.lvd1689m',
@@ -29,11 +29,17 @@ def DINOv3Classifier_bystep(cfg, input_size, num_classes):
     print(f"Loading {model_name} from timm...")
 
     # 🔧 OPTIMISATION 1 : num_classes=0 (plus propre que Identity())
-    backbone = timm.create_model(
-        model_name, 
-        pretrained=True,
-        num_classes=0  # ← Pas de head interne
-    )
+    # backbone = timm.create_model(
+    #     model_name, 
+    #     pretrained=True,
+    #     num_classes=0  # ← Pas de head interne
+    # )
+    backbone = timm.create_model('vit_small_patch16_dinov3.lvd1689m', pretrained=True)
+
+    data_config = timm.data.resolve_model_data_config(backbone)
+    transforms = timm.data.create_transform(**data_config, is_training=False)
+
+    print("ORIGINAL TRANSFORMS: ", transforms)
     
     embed_dim = backbone.num_features
     print(f"Embedding dimension: {embed_dim}")

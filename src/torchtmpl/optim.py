@@ -50,8 +50,45 @@ class FocalLoss(nn.Module):
         else:  # 'none'
             return focal_loss
 
+class Poly1CrossEntropyLoss(nn.Module):
+    def __init__(self, num_classes, epsilon=1.0, weight=None, reduction='mean'):
+        super().__init__()
+        self.epsilon = epsilon
+        self.reduction = reduction
+        self.weight = weight
+        self.num_classes = num_classes
 
-def get_loss(lossname, class_weights=None, device='cuda'):
+    def forward(self, input, target):
+        # Standard CE
+        ce_loss = F.cross_entropy(input, target, weight=self.weight, reduction='none')
+        
+        # Poly1 specific correction
+        pt = torch.sum(F.softmax(input, dim=-1) * F.one_hot(target, self.num_classes), dim=-1)
+        poly1 = ce_loss + self.epsilon * (1 - pt)
+        
+        if self.reduction == 'mean':
+            return poly1.mean()
+        elif self.reduction == 'sum':
+            return poly1.sum()
+        return poly1
+
+
+def get_loss(loss_params, class_weights=None, device='cuda'):
+    lossname = loss_params.get("name", 0)
+    if lossname == "CrossEntropyLoss_Smoothing":
+        # Le Label Smoothing est l'amélioration #1 à tester pour DINOv3
+        smoothing = loss_params.get("label_smoothing", 0.0) 
+        weight = class_weights.to(device) if class_weights is not None else None
+        return nn.CrossEntropyLoss(weight=weight, label_smoothing=smoothing)
+    elif lossname == "PolyLoss":
+        # epsilon=1.0 est la valeur par défaut recommandée par le papier
+        epsilon = loss_params.get("epsilon", 1.0)
+        # On a besoin de num_classes ici, assure-toi de l'avoir quelque part ou déduis-le
+        # Si tu ne l'as pas facilement, tu peux utiliser len(weight) si weight existe
+        weight = class_weights.to(device) if class_weights is not None else None
+        num_classes = len(weight) if weight is not None else loss_params.get("num_classes", 1000) 
+        return Poly1CrossEntropyLoss(num_classes=num_classes, epsilon=epsilon, weight=weight)
+    
     if lossname == "FocalLoss":
         print("USING FOCAL LOSS...")
         alpha = class_weights.to(device) if class_weights is not None else None

@@ -1,4 +1,4 @@
-# Got _% accuracy and _% f1-score. 
+# Got 94.2% accuracy and 90.3% f1-score. 
 data:
   trainpath: './data/data_reannotated_v2/train'
   testpath: './data/original_dataset/test'
@@ -20,7 +20,7 @@ loss: "CrossEntropyLoss"
 logging:
   logdir: "./logs_v2/reannotated"  # Better to provide the fullpath, especially on the cluster
   results_path: "./results"
-  model_path: "./logs_v2/reannotated/DINOv3Classifier_bystep_1/best_model.pt"  # Selection du modèle pour l'inférence sur test
+  model_path: "./logs_v2/reannotated/DINOv3Classifier_bystep_2/best_model.pt"  # Selection du modèle pour l'inférence sur test
 
 scheduler:
   class: "ReduceLROnPlateau"

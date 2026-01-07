@@ -51,7 +51,7 @@ def train(config):
     data_config = config["data"]
 
     print(training_style)
-    train_loader, valid_loader, input_size, num_classes, class_weights = data.get_dataloaders(
+    train_loader, valid_loader, input_size, num_classes, class_weights, classes_names = data.get_dataloaders(
         data_config, training_style=training_style
     )
 
@@ -66,6 +66,7 @@ def train(config):
 
     # Build the loss
     logging.info("= Loss")
+    config["loss"]["num_classes"] = num_classes
     loss = optim.get_loss(config["loss"], class_weights=class_weights, device=device)
 
     # Build the optimizer
@@ -168,9 +169,19 @@ def train(config):
             # Scheduler step
             if scheduler is not None:
                 if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-                    scheduler.step(test_metrics["loss"])
+                    # Lui a besoin de la loss
+                    scheduler.step(test_metrics['loss'])
+                    # Petit log pour voir ce qui se passe
+                    current_lr = optimizer.param_groups[0]['lr']
                 else:
+                    # Cosine, Step, etc. n'ont pas besoin d'argument
+                    # Mais ATTENTION : CosineAnnealingWarmRestarts utilise l'époque décimale 
+                    # pour être fluide si on le souhaite, mais step() vide marche très bien.
                     scheduler.step()
+                    current_lr = optimizer.param_groups[0]['lr']
+
+            else:
+                current_lr = phase['lr']
 
             # Update checkpoint
             updated = model_checkpoint.update(test_metrics["f1"])
@@ -933,7 +944,7 @@ def validate(config):
     # 2. VALIDATION
     logging.info("= Rebuilding dataloaders for specific validation split...")
     
-    _, valid_loader, input_size, num_classes, _ = data.get_dataloaders(
+    _, valid_loader, input_size, num_classes, _, _ = data.get_dataloaders(
         data_config, training_style=training_style
     )
     

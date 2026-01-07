@@ -1,0 +1,60 @@
+# 94.4%, 89.1%
+data:
+  trainpath: './data/data_reannotated/train'
+  testpath: './data/original_dataset/test'
+  batch_size: 32           # Réduit car on augmente la taille de l'image
+  num_workers: 8
+  valid_ratio: 0.1
+  images_resize: 288       # UPGRADE : 224 -> 288 donne plus de détails aux spécialistes
+  dataset_size_divider: 4
+  use_rgb: True
+  transformations_version: basic 
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.001             # LR initial global
+
+loss: "CrossEntropyLoss"
+
+logging:
+  logdir: "./logs_v3/cosine_opt"
+  results_path: "./results"
+  model_path: null
+
+# ==========================================
+# LE SCHEDULER OPTIMISÉ (Cosine Warm Restarts)
+# ==========================================
+scheduler:
+  class: "CosineAnnealingWarmRestarts"
+  T_0: 10            # Premier cycle de 10 époques (le LR descend, puis remonte brutalement)
+  T_mult: 2          # Le cycle suivant sera x2 (20 époques), puis x4 (40 époques)
+  eta_min: 1.0e-7    # Le LR minimum atteignable en bas de courbe
+
+model:
+  class: TimmClassifier      # Assure-toi que ta classe Python gère "model_name"
+  model_name: "convnext_tiny.fb_in1k" # UPGRADE : ConvNeXt est meilleur que ResNet/ResNeXt
+  head_hidden_dims: [512]    # Tête simplifiée pour éviter l'overfitting
+  dropout: 0.3               # Un peu plus de dropout
+
+training:
+  style: standard 
+
+phases:
+  # PHASE 1 : Tête seule (Chauffe rapide)
+  - name: "training_head"
+    epochs: 5        # Court car le Cosine va vite faire descendre le LR
+    lr: 0.001 
+
+  # PHASE 2 : Dégel partiel
+  - name: "training_last_layers"
+    epochs: 15
+    lr: 0.0005       # On restart le LR un peu plus bas
+    unfreeze: true
+    unfreeze_layers: 2 
+
+  # PHASE 3 : Finetuning long (C'est là que le Cosine brille)
+  - name: "training_full_backbone"
+    epochs: 40       # Longue phase pour profiter du cycle Cosine (10 -> 20 -> 40...)
+    lr: 0.00005      # LR très faible
+    unfreeze: "all"

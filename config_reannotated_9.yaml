@@ -1,0 +1,60 @@
+# Got 94.8% accuracy and 89.8% f1-score. 
+data:
+  trainpath: './data/data_reannotated/train'
+  testpath: './data/original_dataset/test'
+  batch_size: 64
+  num_workers: 8
+  valid_ratio: 0.1
+  images_resize: 224
+  dataset_size_divider: 4
+  use_rgb: True
+  transformations_version: basic # options: basic, preserve_aspect_ratio
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.001
+
+loss: "CrossEntropyLoss"
+
+logging:
+  logdir: "./logs_v2/reannotated"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs_v2/reannotated/DINOv3Classifier_bystep_1/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+scheduler:
+  class: "CosineAnnealingWarmRestarts"
+  T_0: 10           # Premier cycle de 10 époques (le LR descend, puis remonte brutalement)
+  T_mult: 2          # Le cycle suivant sera x2 (20 époques), puis x4 (40 époques)
+  eta_min: 1.0e-7    # Le LR minimum atteignable en bas de courbe   
+
+model:
+  class: DINOv3Classifier_bystep
+  model_size: "small"       # Important pour ton sélecteur
+  head_hidden_dims: [512, 256]
+  dropout: 0.2             # Bon pour éviter l'overfitting
+  
+training:
+  style: standard # options: standard, specialist
+
+phases:
+  # PHASE 1 : On ne met PAS de clé "unfreeze". 
+  # Le modèle est créé avec backbone gelé par défaut dans ton code.
+  # On entraîne juste la tête.
+  - name: "training_head"
+    epochs: 20 # 50 c'est souvent trop pour juste aligner la tête, 5-10 suffisent
+    lr: 0.001 # LR plus élevé pour la tête au début
+    
+  # PHASE 2 : On active le dégel partiel
+  # Il faut deux clés pour que ton main.py comprenne
+  - name: "training_last_4_layers"
+    epochs: 40
+    lr: 0.0001        # On baisse le LR car on touche au backbone
+    unfreeze: true    # Active le bloc 'elif'
+    unfreeze_layers: 4 # La valeur passée à la fonction
+
+  # PHASE 3 : Dégel total
+  - name: "training_full_backbone"
+    epochs: 50
+    lr: 0.00001       # LR très bas pour le finetuning total
+    unfreeze: "all"   # Active le bloc 'if == all'

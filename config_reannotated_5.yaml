@@ -1,0 +1,61 @@
+# Got 91.4% accuracy and 84.8% f1-score. 
+data:
+  trainpath: './data/data_reannotated_v2/train'
+  testpath: './data/original_dataset/test'
+  batch_size: 64
+  num_workers: 8
+  valid_ratio: 0.1
+  images_resize: 224
+  dataset_size_divider: 4
+  use_rgb: True
+  transformations_version: option_2_photometric_focus_rand_crop # options: basic, preserve_aspect_ratio, sota_auto, sota_auto_no_pad
+
+optim:
+  algo: AdamW
+  params:
+    lr: 0.001
+
+loss: "CrossEntropyLoss"
+
+logging:
+  logdir: "./logs_v2/reannotated"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs_v2/reannotated/DINOv3Classifier_bystep_1/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+scheduler:
+  class: "ReduceLROnPlateau"
+  mode: "min"        
+  factor: 0.5      
+  patience: 3
+  min_lr: 1.0e-6   
+
+model:
+  class: DINOv3Classifier_bystep
+  model_size: "small"       # Important pour ton sélecteur
+  head_hidden_dims: [512, 256]
+  dropout: 0.2             # Bon pour éviter l'overfitting
+  
+training:
+  style: standard # options: standard, specialist
+
+phases:
+  # PHASE 1 : On ne met PAS de clé "unfreeze". 
+  # Le modèle est créé avec backbone gelé par défaut dans ton code.
+  # On entraîne juste la tête.
+  - name: "training_head"
+    epochs: 20 
+    lr: 0.001 # LR plus élevé pour la tête au début
+    
+  # PHASE 2 : On active le dégel partiel
+  # Il faut deux clés pour que ton main.py comprenne
+  - name: "training_last_4_layers"
+    epochs: 25
+    lr: 0.0001        # On baisse le LR car on touche au backbone
+    unfreeze: true    # Active le bloc 'elif'
+    unfreeze_layers: 4 # La valeur passée à la fonction
+
+  # PHASE 3 : Dégel total
+  - name: "training_full_backbone"
+    epochs: 50
+    lr: 0.00001      # LR très bas pour le finetuning total
+    unfreeze: "all"   # Active le bloc 'if == all'

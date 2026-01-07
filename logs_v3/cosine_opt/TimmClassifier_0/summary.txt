@@ -1,0 +1,71 @@
+Logdir : logs_v3/cosine_opt/TimmClassifier_0
+## Command 
+/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/src/torchtmpl/main.py ./config_reannotated_6.yaml train
+
+ Config : {'data': {'trainpath': './data/data_reannotated_v2/train', 'testpath': './data/original_dataset/test', 'batch_size': 32, 'num_workers': 8, 'valid_ratio': 0.1, 'images_resize': 288, 'dataset_size_divider': 4, 'use_rgb': True, 'transformations_version': 'basic'}, 'optim': {'algo': 'AdamW', 'params': {'lr': 0.001}}, 'loss': 'CrossEntropyLoss', 'logging': {'logdir': './logs_v3/cosine_opt', 'results_path': './results', 'model_path': None}, 'scheduler': {'class': 'CosineAnnealingWarmRestarts', 'T_0': 10, 'T_mult': 2, 'eta_min': 1e-07}, 'model': {'class': 'TimmClassifier', 'model_name': 'convnext_tiny.fb_in1k', 'head_hidden_dims': [512], 'dropout': 0.3}, 'training': {'style': 'standard'}, 'phases': [{'name': 'training_head', 'epochs': 5, 'lr': 0.001}, {'name': 'training_last_layers', 'epochs': 15, 'lr': 0.0005, 'unfreeze': True, 'unfreeze_layers': 2}, {'name': 'training_full_backbone', 'epochs': 40, 'lr': 5e-05, 'unfreeze': 'all'}]} 
+
+## Summary of the model architecture
+=========================================================================================================
+Layer (type:depth-idx)                                  Output Shape              Param #
+=========================================================================================================
+TimmClassifierModel                                     [32, 8]                   --
+├─ConvNeXt: 1-1                                         [32, 768]                 --
+│    └─Sequential: 2-1                                  [32, 96, 72, 72]          --
+│    │    └─Conv2d: 3-1                                 [32, 96, 72, 72]          4,704
+│    │    └─LayerNorm2d: 3-2                            [32, 96, 72, 72]          192
+│    └─Sequential: 2-2                                  [32, 768, 9, 9]           --
+│    │    └─ConvNeXtStage: 3-3                          [32, 96, 72, 72]          237,888
+│    │    └─ConvNeXtStage: 3-4                          [32, 192, 36, 36]         992,256
+│    │    └─ConvNeXtStage: 3-5                          [32, 384, 18, 18]         11,112,960
+│    │    └─ConvNeXtStage: 3-6                          [32, 768, 9, 9]           15,470,592
+│    └─Identity: 2-3                                    [32, 768, 9, 9]           --
+│    └─NormMlpClassifierHead: 2-4                       [32, 768]                 --
+│    │    └─SelectAdaptivePool2d: 3-7                   [32, 768, 1, 1]           --
+│    │    └─LayerNorm2d: 3-8                            [32, 768, 1, 1]           1,536
+│    │    └─Flatten: 3-9                                [32, 768]                 --
+│    │    └─Identity: 3-10                              [32, 768]                 --
+│    │    └─Dropout: 3-11                               [32, 768]                 --
+│    │    └─Identity: 3-12                              [32, 768]                 --
+├─Sequential: 1-2                                       [32, 8]                   --
+│    └─Linear: 2-5                                      [32, 512]                 393,728
+│    └─ReLU: 2-6                                        [32, 512]                 --
+│    └─BatchNorm1d: 2-7                                 [32, 512]                 1,024
+│    └─Dropout: 2-8                                     [32, 512]                 --
+│    └─Linear: 2-9                                      [32, 8]                   4,104
+=========================================================================================================
+Total params: 28,218,984
+Trainable params: 28,218,984
+Non-trainable params: 0
+Total mult-adds (Units.GIGABYTES): 16.48
+=========================================================================================================
+Input size (MB): 31.85
+Forward/backward pass size (MB): 6943.87
+Params size (MB): 112.85
+Estimated Total Size (MB): 7088.57
+=========================================================================================================
+
+## Loss
+
+CrossEntropyLoss()
+
+## Datasets : 
+Train : Dataset ImageFolder
+    Number of datapoints: 968991
+    Root location: ./data/data_reannotated_v2/train
+    StandardTransform
+Transform: Compose(
+               Resize(size=(288, 288), interpolation=bilinear, max_size=None, antialias=True)
+               RandomHorizontalFlip(p=0.5)
+               RandomRotation(degrees=[-15.0, 15.0], interpolation=nearest, expand=False, fill=0)
+               ToTensor()
+               Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+           )
+Validation : Dataset ImageFolder
+    Number of datapoints: 968991
+    Root location: ./data/data_reannotated_v2/train
+    StandardTransform
+Transform: Compose(
+               Resize(size=(288, 288), interpolation=bilinear, max_size=None, antialias=True)
+               ToTensor()
+               Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+           )
