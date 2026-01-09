@@ -1087,7 +1087,231 @@ def validate(config):
 
     return output_file, analysis_dir
 
+################################################################
+# Foundation models training
+################################################################
 
+import torch
+from tqdm import tqdm
+import os
+import logging
+import sys
+import yaml
+import pathlib
+import wandb
+# Assure-toi d'importer tes modules
+# import data, models, optim, utils 
+# from transformers import ViTForMaskedImageModeling (Si tu utilises HF dans build_model)
+
+def train_foundation(config):
+    # --- 1. Setup (Identique à ton code) ---
+    use_cuda = torch.cuda.is_available()
+    device = torch.device("cuda") if use_cuda else torch.device("cpu")
+    disable_bar = os.getenv("DISABLE_TQDM") == "True"
+    print("Will be disabling tqdm bars:", disable_bar)
+    logging.info(f"Training Foundation Model on device: {device}")
+    
+    # SSL ne supporte pas vraiment le changement de LR par phase ou le dégel progressif
+    # On garde la structure de config, mais on simplifie la logique phases
+    phases = config.get("phases", [{"epochs": config.get("nepochs", 20), "lr": 1e-4}])
+
+    if "wandb" in config["logging"]:
+        wandb_config = config["logging"]["wandb"]
+        wandb.init(project=wandb_config["project"], entity=wandb_config["entity"])
+        wandb_log = wandb.log
+        wandb_log(config)
+        logging.info(f"Will be recording in wandb run name : {wandb.run.name}")
+    else:
+        wandb_log = None
+
+    # --- 2. Dataloaders (Spécifique Foundation) ---
+    logging.info("= Building the dataloaders for SSL (Images only)")
+    data_config = config["data"]
+    # Tu devras adapter data.get_dataloaders pour qu'il ne retourne que les images (ou ignore les labels)
+    # ou utiliser une nouvelle méthode dédiée get_foundation_dataloaders
+    train_loader, valid_loader, input_size, _, _, _ = data.get_dataloaders(
+        data_config, training_style="foundation" 
+    )
+
+    # --- 3. Model (Architecture MAE) ---
+    logging.info("= Model (Masked Autoencoder)")
+    model_config = config["model"]
+    # IMPORTANT: models.build_model doit retourner un modèle compatible MAE 
+    # (ex: ViTForMaskedImageModeling de HuggingFace)
+    model = models.build_model(model_config, input_size, num_classes=0) # 0 classes en SSL
+    model = model.to(device)
+
+    # --- 4. Optimizer ---
+    logging.info("= Optimizer")
+    optim_config = config["optim"]
+    optimizer = optim.get_optimizer(optim_config, model.parameters())
+
+    # --- 5. Logging & Callbacks ---
+    logging_config = config["logging"]
+    logname = f"MAE_{model_config['class']}"
+    logdir = utils.generate_unique_logpath(logging_config["logdir"], logname)
+    if not os.path.isdir(logdir):
+        os.makedirs(logdir)
+    logging.info(f"Will be logging into {logdir}")
+
+    logdir = pathlib.Path(logdir)
+    with open(logdir / "config.yaml", "w") as file:
+        yaml.dump(config, file)
+
+    # Summary simplifié (torchinfo peut être capricieux avec MAE, on try/except)
+    try:
+        summary_text = f"Config: {config}\n Model: {type(model)}"
+        logging.info(summary_text)
+    except Exception as e:
+        logging.warning(f"Could not print summary: {e}")
+
+    # IMPORTANT: En SSL, on cherche à MINIMISER la loss (reconstruction error).
+    # Donc min_is_best = True
+    model_checkpoint = utils.ModelCheckpoint(
+        model, str(logdir / "best_foundation_model.pt"), min_is_best=True
+    )
+
+    # Scheduler
+    logging.info("= Learning Rate Scheduler")
+    if "scheduler" in config:
+        scheduler_config = config["scheduler"]
+        scheduler = optim.get_scheduler(scheduler_config, optimizer)
+    else:
+        scheduler = None
+
+    global_epoch = 0
+
+    batch_test = next(iter(train_loader))
+
+    print("--- SANITY CHECK ---")
+    print(f"Type reçu : {type(batch_test)}") # Doit être <dict>
+    print(f"Clés : {batch_test.keys()}")      # Doit contenir 'pixel_values'
+    images = batch_test['pixel_values']
+    print(f"Shape des images : {images.shape}") # Doit être [Batch_Size, 3, Resize, Resize]
+    print(f"Min walue : {images.min()}, Max value : {images.max()}") # Ne doit pas être tout noir (0) ou tout blanc
+    print("--------------------")
+    
+    # --- 6. Training Loop ---
+    # En MAE, généralement une seule "phase" longue, pas de unfreeze
+    for phase_idx, phase in enumerate(phases):
+        logging.info(f"\nPhase {phase_idx+1}: {phase.get('name', 'Pre-training')} - LR: {phase['lr']}")
+        
+        # Set LR manually for the phase start
+        for group in optimizer.param_groups:
+            group['lr'] = phase['lr']
+
+        epoch_pbar = tqdm(range(phase["epochs"]), desc="MAE Training", unit="epoch", disable=disable_bar)
+
+        for e in epoch_pbar:
+            # --- TRAIN STEP ---
+            # On utilise une fonction dédiée définie plus bas
+            train_metrics = train_one_epoch_mae(model, train_loader, optimizer, device, disable_bar)
+
+            # --- VALIDATION STEP ---
+            # On veut voir la loss de reconstruction sur des images jamais vues
+            val_metrics = validate_mae(model, valid_loader, device, disable_bar, log_images=(e % 5 == 0), wandb_log=wandb_log)
+
+            # Scheduler step
+            current_lr = optimizer.param_groups[0]['lr']
+            if scheduler is not None:
+                if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                    scheduler.step(val_metrics['loss'])
+                else:
+                    scheduler.step()
+
+            # Checkpoint basé sur la LOSS de validation (et non le F1)
+            updated = model_checkpoint.update(val_metrics["loss"])
+            
+            log_msg = (
+                f"[Ep {e+1}/{phase['epochs']}] "
+                f"Train Loss: {train_metrics['loss']:.4f} | "
+                f"Val Loss: {val_metrics['loss']:.4f} "
+                f"{'[>> BEST <<]' if updated else ''} | "
+                f"LR: {current_lr:.2e}"
+            )
+            logging.info(log_msg)
+
+            # Logging metrics
+            metrics_to_log = {
+                "train_loss": train_metrics['loss'],
+                "val_loss": val_metrics['loss'],
+                "learning_rate": current_lr,
+                "epoch": global_epoch
+            }
+            if wandb_log is not None:
+                wandb.log(metrics_to_log)
+
+            global_epoch += 1
+
+# --- Helpers spécifiques pour le MAE (à inclure dans ton fichier ou utils) ---
+
+def train_one_epoch_mae(model, dataloader, optimizer, device, disable_bar=False):
+    model.train()
+    total_loss = 0
+    num_batches = 0
+    
+    pbar = tqdm(dataloader, desc="  Batch", leave=False, disable=disable_bar)
+    for batch in pbar:
+        # Gestion des formats de batch variables (img, label) ou (img)
+        pixel_values = batch['pixel_values']
+
+        pixel_values = pixel_values.to(device)
+        
+        # Forward pass
+        # Les modèles HF MAE calculent la loss en interne s'ils reçoivent pixel_values
+        outputs = model(pixel_values=pixel_values)
+        loss = outputs.loss
+
+        # Backward
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        num_batches += 1
+        pbar.set_postfix({"loss": f"{loss.item():.4f}"})
+
+    return {"loss": total_loss / num_batches}
+
+def validate_mae(model, dataloader, device, disable_bar=False, log_images=False, wandb_log=None):
+    model.eval()
+    total_loss = 0
+    num_batches = 0
+    
+    # Pour la visualisation (sauvegarder le premier batch)
+    vis_images = None
+    vis_outputs = None
+    
+    with torch.no_grad():
+        for batch in tqdm(dataloader, desc="  Val", leave=False, disable=disable_bar):
+            pixel_values = batch['pixel_values']
+            
+            pixel_values = pixel_values.to(device)
+            
+            # Forward
+            outputs = model(pixel_values=pixel_values, output_hidden_states=False)
+            loss = outputs.loss
+            
+            total_loss += loss.item()
+            num_batches += 1
+            
+            # Sauvegarder un batch pour visualisation si demandé
+            if log_images and vis_images is None:
+                vis_images = pixel_values.cpu()
+                # Si le modèle renvoie des logits de reconstruction, on les récupère
+                if hasattr(outputs, 'logits'):
+                    vis_outputs = outputs.logits.cpu()
+
+    avg_loss = total_loss / num_batches
+
+    # Visualisation simple dans WandB (Optionnel mais très recommandé)
+    if log_images and wandb_log is not None and vis_outputs is not None:
+        # Reconstruction rudimentaire (dépend de la patch size, etc.)
+        # C'est complexe à faire génériquement sans connaître la structure exacte du modèle
+        # Donc on log juste la loss pour l'instant pour ne pas faire crasher le script
+        pass
+
+    return {"loss": avg_loss}
 
 
 if __name__ == "__main__":

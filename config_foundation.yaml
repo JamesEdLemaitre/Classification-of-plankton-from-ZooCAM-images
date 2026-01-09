@@ -1,0 +1,45 @@
+data:
+  trainpath: ''
+  # Chemins vers les CSV générés (relatifs ou absolus)
+  manifest_train: './foundation_data_config_splits/foundation_train_production.csv'
+  manifest_test: './foundation_data_config_splits/foundation_val_production.csv'
+
+  batch_size: 128  
+  num_workers: 8
+  images_resize: 224
+  use_rgb: True       
+  transformations_version: foundation_basic 
+
+model:
+  # C'est ici que la magie opère avec ton eval()
+  class: "VisionTransformerMAE"   
+  name: "facebook/vit-mae-base"
+
+training:
+  style: foundation # Pour déclencher le dataset CSV dans data.py
+
+
+logging:
+  logdir: "./logs_v4/reannotated"  # Better to provide the fullpath, especially on the cluster
+  results_path: "./results"
+  model_path: "./logs_v4/foundation/DINOv3Classifier_bystep_1/best_model.pt"  # Selection du modèle pour l'inférence sur test
+
+# Les params d'optimisation standard pour MAE
+optim:
+  algo: AdamW
+  params:
+    lr: 1.5e-4
+    weight_decay: 0.05
+    betas: [0.9, 0.95] # Important pour la stabilité des ViT
+
+scheduler:
+  class: "CosineAnnealingLR" 
+  T_max: 50 
+
+loss:
+  name: "MaskedImageModelingLoss" # Juste pour l'info, géré en interne
+
+phases:
+  - name: "pretraining"
+    epochs: 50 
+    lr: 1.5e-4

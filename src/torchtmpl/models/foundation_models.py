@@ -1,6 +1,7 @@
 # External imports
 import torch.nn as nn
 import timm 
+from transformers import ViTMAEForPreTraining
 
 
 def DINOv3Classifier_bystep(cfg, input_size, num_classes):
@@ -172,4 +173,29 @@ def DINOv3Classifier_bystep(cfg, input_size, num_classes):
     print(f"   Trainable (initial): {trainable_params:,} ({trainable_params/total_params*100:.1f}%)")
     print(f"   Frozen: {total_params - trainable_params:,}")
 
+    return model
+
+class HuggingFaceMAEWrapper(nn.Module):
+    def __init__(self, model_name):
+        super().__init__()
+        # On utilise la classe spécifique pour MAE qui gère la loss
+        self.vit = ViTMAEForPreTraining.from_pretrained(model_name)
+
+    def forward(self, pixel_values, **kwargs):
+        # Ajout de **kwargs ici.
+        # Cela permet d'accepter "output_hidden_states", "return_dict", etc.
+        # et de les transférer directement au modèle Hugging Face.
+        outputs = self.vit(pixel_values=pixel_values, **kwargs)
+        
+        return outputs
+
+def VisionTransformerMAE(cfg, input_size, num_classes):
+    model_name = cfg.get("name", "facebook/vit-mae-base")
+    print(f"🏗️  Building Foundation Model Wrapper: {model_name}")
+    
+    # Simple vérification
+    if "mae" not in model_name and "vit" not in model_name:
+        print(f"⚠️ Warning: Le modèle {model_name} est peut-être incompatible avec ViTMAEForPreTraining.")
+
+    model = HuggingFaceMAEWrapper(model_name)
     return model

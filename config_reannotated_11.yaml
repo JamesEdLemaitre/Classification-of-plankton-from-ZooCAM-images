@@ -1,4 +1,4 @@
-# Got 86.5% accuracy and 71.6% f1-score.
+# Got 86.6% accuracy and 71.6% f1-score.
 # Très bizarre, dernier BETTER à l'epoch 1 de la phase 3 puis baisse constante. 
 data:
   trainpath: './data/data_reannotated/train'
