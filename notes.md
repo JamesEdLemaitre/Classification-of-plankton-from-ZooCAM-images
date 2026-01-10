@@ -25,4 +25,13 @@ I thus decided to make bigger classes and train a model to classify the images a
 
 Using a dinov3 backbone, I was able to train a model with a f1-score > 85% and an accuracy > 94%. I decided that it was good enough, as I would probably be able to improve this score in the future. 
 
+# Step 5: Real Foundation model
 
+As the results given by the precedent step didn't achieve a better score (very close to the first score however), I want to follow the advice in the course slides: "We need data". Using my knowledge from my apprenticeship, I know that foundation models can be used to train on huge amount of data, regardless of wether this data is labelled neither if the labels are the same as the ones in the challenge dataset. 
+
+I gathered 3 additionnal datasets, which should allow us to have a final dataset containing a much bigger amount of images from various sources, forcing the model to learn meaningful features to understand planktons. 
+
+# To to also:
+
+- Try the same or a similar approach to "Deep Learning Classification of Lake ZooPlankton"
+Including: Try to extract features in a Dataframe using more traditionnal image processing tools  (Done, but needs much more tuning, see scripts/image_proc_feature_extraction)
