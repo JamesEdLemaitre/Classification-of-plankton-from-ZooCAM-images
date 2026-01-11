@@ -7,28 +7,63 @@ from tqdm import tqdm
 
 # --- CONFIGURATION UTILISATEUR ---
 
+
+##########################
+# Config v1
+##########################
+
+# DATASET_PATHS = {
+#     "challenge": "data/original_dataset",
+#     "pelgas": "data/pelgas_dataset/101141/individual_images",   
+#     "whoi":      "data/whoi_dataset",      
+#     "ndsb":     "data/ndsb_dataset",    
+# }
+
+# MIX_CONFIGS = {
+#     # Debug léger 
+#     "DEBUG": {
+#         "challenge": 1000, 
+#         "pelgas": 1000,   
+#         "whoi":      1000,
+#         "ndsb":     1000,
+#         "seed":      42
+#     },
+#     # Production : Volumes réels
+#     "PRODUCTION": {
+#         "challenge": "all",
+#         "pelgas": 1_000_000,        
+#         "whoi":      481_082,   
+#         "ndsb":     30_336,     
+#         "seed":      2024
+#     }
+# }
+
+##########################
+# Config v2 (optimized)
+##########################
+
 DATASET_PATHS = {
-    "challenge": "data/original_dataset",
-    "pelgas": "data/pelgas_dataset/101141/individual_images",   
-    "whoi":      "data/whoi_dataset",      
-    "ndsb":     "data/ndsb_dataset",    
+    "challenge": "data/original_dataset_optimized_512px",
+    "pelgas": "data/pelgas_dataset_cropped_optimized_512px/101141/individual_images",   
+    "whoi":      "data/whoi_dataset_optimized_512px",      
+    "ndsb":     "data/ndsb_dataset_optimized_512px",    
 }
 
 MIX_CONFIGS = {
     # Debug léger 
     "DEBUG": {
-        "challenge": 1000, 
-        "pelgas": 1000,   
-        "whoi":      1000,
-        "ndsb":     1000,
+        "challenge_optimized": 1000, 
+        "pelgas_cropped_optimized": 1000,   
+        "whoi_optimized":      1000,
+        "ndsb_optimized":     1000,
         "seed":      42
     },
     # Production : Volumes réels
     "PRODUCTION": {
-        "challenge": "all",
-        "pelgas": 1_000_000,        
-        "whoi":      481_082,   
-        "ndsb":     30_336,     
+        "challenge_optimized": "all",
+        "pelgas_cropped_optimized": 1_153_507, #all        
+        "whoi_optimized":      481_082,  #all 
+        "ndsb_optimized":     30_336,    #all 
         "seed":      2024
     }
 }
@@ -155,7 +190,7 @@ def generate_mixed_dataset(full_indexes, config_name, config, output_dir):
     print("-" * 50)
 
 def main():
-    OUTPUT_DIR = "foundation_data_config_splits"
+    OUTPUT_DIR = "foundation_data_config_splits_optimized"
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     full_indexes = {}
