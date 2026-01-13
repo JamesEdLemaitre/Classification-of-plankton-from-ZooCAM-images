@@ -52,18 +52,18 @@ DATASET_PATHS = {
 MIX_CONFIGS = {
     # Debug léger 
     "DEBUG": {
-        "challenge_optimized": 1000, 
-        "pelgas_cropped_optimized": 1000,   
-        "whoi_optimized":      1000,
-        "ndsb_optimized":     1000,
+        "challenge": 1000, 
+        "pelgas": 1000,   
+        "whoi":      1000,
+        "ndsb":     1000,
         "seed":      42
     },
     # Production : Volumes réels
     "PRODUCTION": {
-        "challenge_optimized": "all",
-        "pelgas_cropped_optimized": 1_153_507, #all        
-        "whoi_optimized":      481_082,  #all 
-        "ndsb_optimized":     30_336,    #all 
+        "challenge": "all",
+        "pelgas": "all", #all        
+        "whoi":      "all",  #all 
+        "ndsb":     "all",    #all 
         "seed":      2024
     }
 }

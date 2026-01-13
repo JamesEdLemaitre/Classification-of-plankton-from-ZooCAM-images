@@ -8,10 +8,10 @@ import time
 
 # ================= CONFIGURATION =================
 # Dossier contenant tes images (ex: tes crops)
-SOURCE_DIR = "/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/data/original_dataset/test"
+SOURCE_DIR = "/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/data/pelgas_dataset_cropped/101141/individual_images"
 
 # Dossier où sera créé le dataset optimisé
-DEST_DIR = "/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test"
+DEST_DIR = "/home/lmalerba/projects/sdim_data_challenge/kaggle_challenge_sdi_cleaned/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images"
 
 
 
