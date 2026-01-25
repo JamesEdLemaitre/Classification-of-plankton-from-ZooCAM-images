@@ -1,0 +1,27 @@
+{
+    "Actinopterygii__56693": 2113,      // original: 90;   gain: +2347% (Critique)
+    "Candaciidae__61991": 2773,         // original: 155;  gain: +1789% (Critique)
+    "larvae_Porcellanidae__92238": 2838,// original: 796;  gain: +356%
+    "Amphipoda__45054": 853,            // original: 274;  gain: +311%
+    "Microsetella__92324": 1169,        // original: 288;  gain: +405%
+    "larvae_Annelida__84965": 708,      // original: 336;  gain: +210%
+    "Obelia__72344": 1016,              // original: 495;  gain: +205%
+    "Phoronida__11491": 163,            // original: 86;   gain: +189%
+    "Metridinidae__61982": 5000,        // original: 2251; gain: +222% (Limité à 5000 pour éviter un trop gros déséquilibre, dispo: 15k)
+    "Doliolida__25944": 128,            // original: 83;   gain: +154%
+    "Euterpina__62036": 2870,           // original: 1305; gain: +219%
+    "Annelida__11518": 2434,            // original: 352;  gain: +691%
+    "pluteus_Echinoidea__85000": 1441,  // original: 2172; gain: +66%
+    "Ctenophora_Metazoa__11511": 126,   // original: 106; gain: +119%
+    "Cnidaria_Metazoa__11512": 500,     // original: 142; gain: +254% (disponibles au total: 5116)
+    "larvae_Echinodermata__92801": 1000, // original: 439; gain: +228% (disponibles au total: 2639)
+    "nectophore_Physonectae__84980": 100, // original: 159; gain: +63% (disponibles au total: 696), mais on met pas trop car sous-ordre
+    "Pontellidae__61980": 299,           // original: 217; gain: +138%
+    "Decapoda__45043": 471,              // original: 432; gain: +109%   
+    "nectophore_Diphyidae__84976": 500,  // original: 1265; gain: +40% (disponibles au total: 14389)
+    "tail_Appendicularia__85004": 500,   // original: 11 349; gain: +4% (disponibles au total: 11349)
+    "cyphonaute__84967": 500,       // original: 1435; gain: +225%   (total disponibles: 2218 )
+    "megalopa__84991": 460,             // original: 1285; gain: +36%   
+    "Harpacticoida__45071": 300,        // original: 581; gain: +52% (disponibles au total: 1697)
+    "Calocalanus__80164": 600        // original: 950 ; gain: % (disponibles au total: 1196)
+}

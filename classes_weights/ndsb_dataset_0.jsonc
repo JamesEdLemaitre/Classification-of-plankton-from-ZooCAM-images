@@ -1,0 +1,15 @@
+{
+    "tunicate_doliolid": 100, // 439,
+    "tunicate_doliolid_nurse": 100, // 417, Pas parfait, mais ok pour un peu de diversité.
+    "fish_larvae_deep_body": 10,// 10, // On réduit volontairement car c'est différent, on va juste rajouter un peu de diversité mais on veut pas apprendre là dessus
+    "fish_larvae_leptocephali": 10,// 31, // plus que sur e dataset original
+    "fish_larvae_medium_body": 10,// 85,
+    "fish_larvae_myctophids": 10,// 114,
+    "fish_larvae_thin_body": 10,// 64,
+    "fish_larvae_very_thin_body": 10,// 16,
+    "siphonophore_physonect": 0, // 128,
+    "siphonophore_physonect_young": 0, // 21,
+    "pteropod_butterfly": 0, // 108, 
+    "pteropod_triangle": 0, // 13,
+    "pteropod_theco_dev_seq": 0 // 60
+}

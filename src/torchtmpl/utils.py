@@ -6,7 +6,10 @@ import os
 # External imports
 import torch
 import torch.nn
-import tqdm
+from tqdm import tqdm
+
+from sklearn.metrics import f1_score
+import numpy as np
 
 
 def generate_unique_logpath(logdir, raw_run_name):
@@ -82,59 +85,55 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
 
     total_loss = 0
     num_samples = 0
-    for i, (inputs, targets) in (pbar := tqdm.tqdm(enumerate(loader))):
+    with tqdm(loader, desc="  Train", leave=False) as pbar:
+        for inputs, targets in pbar:
 
-        inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device), targets.to(device)
 
-        # Compute the forward propagation
-        outputs = model(inputs)
+            # Compute the forward propagation
+            outputs = model(inputs)
 
-        loss = f_loss(outputs, targets)
+            loss = f_loss(outputs, targets)
 
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        # Update the metrics
-        # We here consider the loss is batch normalized
-        total_loss += inputs.shape[0] * loss.item()
-        num_samples += inputs.shape[0]
-        pbar.set_description(f"Train loss : {total_loss/num_samples:.2f}")
+            # Update the metrics
+            # We here consider the loss is batch normalized
+            total_loss += inputs.shape[0] * loss.item()
+            num_samples += inputs.shape[0]
+            pbar.set_description(f"  Train | Loss: {total_loss/num_samples:.4f}")
 
     return total_loss / num_samples
 
 
 def test(model, loader, f_loss, device):
-    """
-    Test a model over the loader
-    using the f_loss as metrics
-    Arguments :
-    model     -- A torch.nn.Module object
-    loader    -- A torch.utils.data.DataLoader
-    f_loss    -- The loss function, i.e. a loss Module
-    device    -- A torch.device
-    Returns :
-    """
-
-    # We enter eval mode.
-    # This is important for layers such as dropout, batchnorm, ...
     model.eval()
-
     total_loss = 0
     num_samples = 0
-    for (inputs, targets) in loader:
+    all_preds = []
+    all_targets = []
 
-        inputs, targets = inputs.to(device), targets.to(device)
+    with torch.no_grad(), tqdm(loader, desc="  Test", leave=False) as pbar:
+        for inputs, targets in loader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = model(inputs)
+            loss = f_loss(outputs, targets)
 
-        # Compute the forward propagation
-        outputs = model(inputs)
+            total_loss += inputs.shape[0] * loss.item()
+            num_samples += inputs.shape[0]
+            
+            # Stockage pour calcul F1
+            _, preds = torch.max(outputs, 1)
+            all_preds.extend(preds.cpu().numpy())
+            all_targets.extend(targets.cpu().numpy())
 
-        loss = f_loss(outputs, targets)
+            pbar.set_description(f"  Test | Loss: {total_loss/num_samples:.4f}")
 
-        # Update the metrics
-        # We here consider the loss is batch normalized
-        total_loss += inputs.shape[0] * loss.item()
-        num_samples += inputs.shape[0]
-
-    return total_loss / num_samples
+    avg_loss = total_loss / num_samples
+    
+    f1 = f1_score(all_targets, all_preds, average='macro')
+    
+    return avg_loss, {"f1": f1}

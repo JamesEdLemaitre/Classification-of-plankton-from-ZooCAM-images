@@ -1,0 +1,15 @@
+{
+    "tunicate_doliolid": "034_Doliolida",
+    "tunicate_doliolid_nurse": "034_Doliolida", // pas parfait mais ok pour un peu de diversité. 
+    "fish_larvae_deep_body": "028_Actinopterygii",
+    "fish_larvae_leptocephali": "028_Actinopterygii",
+    "fish_larvae_medium_body": "028_Actinopterygii",
+    "fish_larvae_myctophids": "028_Actinopterygii",
+    "fish_larvae_thin_body": "028_Actinopterygii", 
+    "fish_larvae_very_thin_body": "028_Actinopterygii", // vraiment pas sûr de vouloir les mettre
+    "siphonophore_physonect": "000_Physonectae",
+    "siphonophore_physonect_young": "000_Physonectae", // non ne se ressemble pas. Ne pas mettre. 
+    "pteropod_butterfly": "060_Gastropoda", 
+    "pteropod_triangle": "060_Gastropoda",
+    "pteropod_theco_dev_seq": "060_Gastropoda" // rien à voir, ne pas mettre. 
+}
