@@ -29,6 +29,8 @@ def ResNet50(cfg, input_size, num_classes):
             bias=False,
         )
 
+    print("nombre de channel : ", input_size[0])
+
     # Modify the final fully connected layer to match the number of classes
     model.fc = nn.Linear(model.fc.in_features, num_classes)
 

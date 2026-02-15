@@ -175,7 +175,8 @@ def train(config):
             current_lr = optimizer.param_groups[0]['lr']
             logging.info(f"  Current LR: {current_lr:.6f}")
 
-        updated = model_checkpoint.update(test_loss)
+        # updated = model_checkpoint.update(test_loss)
+        updated = model_checkpoint.update(metrics['f1'])
         logging.info(
             "[%d/%d] Train loss: %.3f | Validation loss : %.3f %s | metrics: %s"
             % (
