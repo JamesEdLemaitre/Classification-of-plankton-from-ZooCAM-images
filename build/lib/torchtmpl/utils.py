@@ -6,7 +6,15 @@ import os
 # External imports
 import torch
 import torch.nn
-import tqdm
+from tqdm import tqdm
+from sklearn.metrics import (
+            accuracy_score,
+            f1_score,
+            precision_score,
+            recall_score,
+            roc_auc_score,
+        )
+import numpy as np 
 
 
 def generate_unique_logpath(logdir, raw_run_name):
@@ -82,7 +90,9 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
 
     total_loss = 0
     num_samples = 0
-    for i, (inputs, targets) in (pbar := tqdm.tqdm(enumerate(loader))):
+    pbar = tqdm(loader, desc="Training", leave=False)
+    
+    for i, (inputs, targets) in enumerate(pbar):
 
         inputs, targets = inputs.to(device), targets.to(device)
 
@@ -123,18 +133,56 @@ def test(model, loader, f_loss, device):
 
     total_loss = 0
     num_samples = 0
-    for (inputs, targets) in loader:
+    all_targets = []
+    all_preds = []
+    all_outputs = []
 
-        inputs, targets = inputs.to(device), targets.to(device)
+    pbar = tqdm(
+        loader,
+        desc="Validation",
+        unit="batch",
+        leave=False,  # ← Important : ne pas laisser la barre après
+        position=1     # ← Position 1 pour être sous la barre epoch
+    )
 
-        # Compute the forward propagation
-        outputs = model(inputs)
+    with torch.no_grad():
+        for (inputs, targets) in pbar:
 
-        loss = f_loss(outputs, targets)
+            inputs, targets = inputs.to(device), targets.to(device)
 
-        # Update the metrics
-        # We here consider the loss is batch normalized
-        total_loss += inputs.shape[0] * loss.item()
-        num_samples += inputs.shape[0]
+            # Compute the forward propagation
+            outputs = model(inputs)
 
-    return total_loss / num_samples
+            loss = f_loss(outputs, targets)
+
+            # Update the metrics
+            # We here consider the loss is batch normalized
+            total_loss += inputs.shape[0] * loss.item()
+            num_samples += inputs.shape[0]
+
+            _, preds = torch.max(outputs, 1)
+
+            # Stocke les résultats pour les métriques globales
+            all_targets.extend(targets.cpu().numpy())
+            all_preds.extend(preds.cpu().numpy())
+            all_outputs.extend(outputs.cpu().numpy())  # Pour AUC-ROC
+
+    # Calcul des métriques
+    metrics = {
+        'loss': total_loss / len(loader.dataset),
+        'accuracy': accuracy_score(all_targets, all_preds),
+        'f1': f1_score(all_targets, all_preds, average='macro'),
+        'precision': precision_score(all_targets, all_preds, average='macro'),
+        'recall': recall_score(all_targets, all_preds, average='macro'),
+    }
+
+    if len(set(all_targets)) > 2:  # Multi-classe
+        from sklearn.preprocessing import label_binarize
+        targets_onehot = label_binarize(all_targets, classes=sorted(set(all_targets)))
+        metrics['auc_roc'] = roc_auc_score(
+            targets_onehot,
+            np.array(all_outputs),
+            multi_class='ovr'
+        )
+
+    return total_loss / num_samples, metrics

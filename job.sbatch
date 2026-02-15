@@ -25,10 +25,10 @@ rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 # --exclude logs
 
-echo "Checking out the correct version of the code commit_id f631349dcfcb2cb1e3f0ee2d77108b0d3cd044de"
+echo "Checking out the correct version of the code commit_id 9c7a16690107934554a8964b0c9265acdb57c554"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout f631349dcfcb2cb1e3f0ee2d77108b0d3cd044de
+git checkout 9c7a16690107934554a8964b0c9265acdb57c554
 
 
 echo "Setting up the virtual environment"
@@ -41,14 +41,14 @@ python -m pip install .
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
 echo "Training"
-python -m torchtmpl.main configs/tmp7ygwdpz4-config.yml train
+python -m torchtmpl.main configs/tmpyi9kur7d-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/tmp7ygwdpz4-config.yml test
+python -m torchtmpl.main configs/tmpyi9kur7d-config.yml test
 
 echo "Copying results back"
 mkdir -p "$current_dir/logs"

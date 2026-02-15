@@ -175,8 +175,12 @@ def train(config):
             current_lr = optimizer.param_groups[0]['lr']
             logging.info(f"  Current LR: {current_lr:.6f}")
 
-        # updated = model_checkpoint.update(test_loss)
-        updated = model_checkpoint.update(metrics['f1'])
+        updated = model_checkpoint.update(test_loss)
+        
+        #inutile il y a la focal loss j'ai pas besoin de faire une f1 loss
+        #updated = model_checkpoint.update(metrics['f1'])
+        #
+        
         logging.info(
             "[%d/%d] Train loss: %.3f | Validation loss : %.3f %s | metrics: %s"
             % (

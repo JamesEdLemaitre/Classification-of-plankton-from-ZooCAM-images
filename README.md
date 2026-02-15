@@ -54,7 +54,7 @@ python3 ./submit-slurm.py config_test1.yaml
 tail -f logslurms/slurm-*.out
 
 # Ou spécifiquement un job (remplacez 115528 par le numéro)
-tail -f logslurms/slurm-115528_1.out
+tail -f logslurms/slurm-151829.out
 
 Voir tout d'un coup
 cat logslurms/slurm-115528_1.outtail

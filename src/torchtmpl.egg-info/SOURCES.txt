@@ -4,6 +4,7 @@ pyproject.toml
 setup.py
 src/torchtmpl/__init__.py
 src/torchtmpl/data.py
+src/torchtmpl/inference.py
 src/torchtmpl/main.py
 src/torchtmpl/optim.py
 src/torchtmpl/utils.py
@@ -16,3 +17,6 @@ src/torchtmpl/models/__init__.py
 src/torchtmpl/models/__main__.py
 src/torchtmpl/models/base_models.py
 src/torchtmpl/models/cnn_models.py
+src/torchtmpl/models/foundation_models.py
+src/torchtmpl/models/quicktest.py
+src/torchtmpl/models/resnet_models.py
