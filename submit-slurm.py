@@ -52,14 +52,14 @@ python -m pip install .
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
 echo "Training"
-python -m torchtmpl.main configs/{config_filename} train
+python -m src.torchtmpl.main configs/{config_filename} train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/{config_filename} test
+python -m src.torchtmpl.main configs/{config_filename} test
 
 echo "Copying results back"
 mkdir -p "$current_dir/logs"

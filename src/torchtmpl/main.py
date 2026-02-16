@@ -57,6 +57,20 @@ def train(config):
         data_config, use_cuda
     )
     class_weights = class_weights.to(device)
+
+    # Afficher la distribution des classes du validation_loader
+    class_counts = [0] * num_classes
+    for X, y in valid_loader:
+        for label in y:
+            class_counts[label.item()] += 1
+
+    total = 0
+    for i, count in enumerate(class_counts):
+        total += count
+    
+    print("\n📊 Validation Set Distribution:")
+    for i, count in enumerate(class_counts):
+        print(f"  Class {i}: {count/total}")
     
     # Calculer les class weights pour gérer le déséquilibre
     # logging.info("= Computing class weights")
@@ -71,6 +85,7 @@ def train(config):
     # )
     # class_weights = torch.FloatTensor(class_weights)
     # logging.info(f"  Class weights: {class_weights.numpy()}")
+
 
     # Build the model
     logging.info("= Model")
@@ -180,7 +195,7 @@ def train(config):
         #inutile il y a la focal loss j'ai pas besoin de faire une f1 loss
         #updated = model_checkpoint.update(metrics['f1'])
         #
-        
+
         logging.info(
             "[%d/%d] Train loss: %.3f | Validation loss : %.3f %s | metrics: %s"
             % (
