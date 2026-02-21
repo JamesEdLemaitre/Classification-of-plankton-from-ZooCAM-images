@@ -15,6 +15,9 @@ echo "Session " ${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
 
 echo "Running on " $(hostname)
 
+# echo "Copying dataset"
+# rsync -r /mounts/datasets/datasets/2025-ZooCamChallenge/ $TMPDIR/data/
+
 echo "Copying the source directory and data"
 date
 mkdir $TMPDIR/code
@@ -22,10 +25,10 @@ rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 # --exclude logs
 
-echo "Checking out the correct version of the code commit_id 85daac413e17874fdbeb08a0bd2d819022e5cf3b"
+echo "Checking out the correct version of the code commit_id 689a153c76a60a26fef1063acd38eb9d452a6d8c"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout 85daac413e17874fdbeb08a0bd2d819022e5cf3b
+git checkout 689a153c76a60a26fef1063acd38eb9d452a6d8c
 
 
 echo "Setting up the virtual environment"
@@ -38,14 +41,14 @@ python -m pip install .
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
 echo "Training"
-python -m torchtmpl.main configs/tmpw96egolm-config.yml train
+python -m src.torchtmpl.main configs/tmpusz0nvyb-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m torchtmpl.main configs/tmpw96egolm-config.yml test
+python -m src.torchtmpl.main configs/tmpusz0nvyb-config.yml test
 
 echo "Copying results back"
 mkdir -p "$current_dir/logs"
