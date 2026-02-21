@@ -3,7 +3,7 @@
 #SBATCH --job-name=templatecode
 #SBATCH --nodes=1
 #SBATCH --partition=gpu_prod_long
-#SBATCH --time=2:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=logslurms/slurm-%A_%a.out
 #SBATCH --error=logslurms/slurm-%A_%a.err
 #SBATCH --array=1-1
@@ -25,10 +25,10 @@ rsync -r --exclude logs --exclude denoising --exclude logslurms . $TMPDIR/code
 
 # --exclude logs
 
-echo "Checking out the correct version of the code commit_id 689a153c76a60a26fef1063acd38eb9d452a6d8c"
+echo "Checking out the correct version of the code commit_id f69831296f856d6a85bc58281f0812f43d9541a9"
 # on se place dans le répertoire d'un noeud de calcul, on était à la base a la racine du projet
 cd $TMPDIR/code
-git checkout 689a153c76a60a26fef1063acd38eb9d452a6d8c
+git checkout f69831296f856d6a85bc58281f0812f43d9541a9
 
 
 echo "Setting up the virtual environment"
@@ -41,14 +41,14 @@ python -m pip install .
 
 #IL FAUT PAS DE DOSSIER CONFIGS dans le chemin je pense, si parce qu'enfaite on créer des configs temp qui sont dans le dossier configs
 echo "Training"
-python -m src.torchtmpl.main configs/tmpusz0nvyb-config.yml train
+python -m src.torchtmpl.main configs/tmpwsnq5v7q-config.yml train
 
 if [[ $? != 0 ]]; then
     exit -1
 fi
 
 echo "Generating submission file"
-python -m src.torchtmpl.main configs/tmpusz0nvyb-config.yml test
+python -m src.torchtmpl.main configs/tmpwsnq5v7q-config.yml test
 
 echo "Copying results back"
 mkdir -p "$current_dir/logs"

@@ -326,20 +326,40 @@ def get_dataloaders(data_config, use_cuda):
     if not use_rgb:
         transform_list.append(transforms.Grayscale())  # 1 canal
     # Sinon, reste en RGB natif (3 canaux)
-    
-    transform_list.extend([
+
+    # Train transform WITH augmentation
+    train_transform = transforms.Compose([
+        transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
         transforms.Resize((resize, resize)),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(15),
         transforms.ToTensor()
     ])
 
-    input_transform = transforms.Compose(transform_list)
+    # Valid/Test transform WITHOUT augmentation
+    valid_transform = transforms.Compose([
+        transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
+        transforms.Resize((resize, resize)),
+        transforms.ToTensor()
+    ])
+
+    '''input_transform = transforms.Compose(transform_list)
 
     base_dataset = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"], 
         transform=input_transform,
+    )'''
+
+    base_dataset = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=train_transform
     )
+    base_dataset_without_transform = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=valid_transform
+    )
+
+# Puis faire le split manuellement sur les indices
 
     logging.info(f"  - I loaded {len(base_dataset)} samples")
 
@@ -385,7 +405,7 @@ def get_dataloaders(data_config, use_cuda):
     train_indices, valid_indices = next(splitter.split(indices, targets))
 
     train_dataset = torch.utils.data.Subset(base_dataset, train_indices)
-    valid_dataset = torch.utils.data.Subset(base_dataset, valid_indices)
+    valid_dataset = torch.utils.data.Subset(base_dataset_without_transform, valid_indices)
 
     # Build the dataloaders
     train_weights = [sample_weights[i] for i in train_indices]
