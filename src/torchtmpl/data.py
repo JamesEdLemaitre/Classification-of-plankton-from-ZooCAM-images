@@ -404,8 +404,11 @@ def get_dataloaders(data_config, use_cuda):
     splitter = StratifiedShuffleSplit(n_splits=1, test_size=valid_ratio, random_state=42)
     train_indices, valid_indices = next(splitter.split(indices, targets))
 
+    logging.info(f"Train size: {len(train_indices)} | Valid size: {len(valid_indices)}")
+
     train_dataset = torch.utils.data.Subset(base_dataset, train_indices)
     valid_dataset = torch.utils.data.Subset(base_dataset_without_transform, valid_indices)
+    logging.info(f"Train size: {len(train_dataset)} | Valid size: {len(valid_dataset)}")
 
     # Build the dataloaders
     train_weights = [sample_weights[i] for i in train_indices]
@@ -432,6 +435,9 @@ def get_dataloaders(data_config, use_cuda):
         num_workers=num_workers,
         pin_memory=use_cuda,
     )
+
+    logging.info(f"Train size: {len(train_loader.dataset)} | Valid size: {len(valid_loader.dataset)}")
+
     num_classes = len(base_dataset.classes)
     input_size = tuple(base_dataset[0][0].shape)
 

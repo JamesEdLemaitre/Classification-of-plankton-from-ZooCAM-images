@@ -79,7 +79,48 @@ def test_resnet50():
     print("Testing ResNet50...")
     
     cfg = {"class": "ResNet50"}
-    input_size = (3, 64, 64)
+    input_size = (1, 64, 64)
+    batch_size = 32
+    num_classes = 10
+    
+    print(f"Config: {cfg}")
+    print(f"Input size: {input_size}")
+    print(f"Num classes: {num_classes}")
+    print(f"Batch size: {batch_size}")
+    
+    try:
+        print("\nBuilding model...")
+        model = build_model(cfg, input_size, num_classes)
+        
+        print("Model built successfully!")
+        
+        # Test forward pass
+        print("\nTesting forward pass...")
+        input_tensor = torch.randn(batch_size, *input_size)
+        output = model(input_tensor)
+        
+        print(f"Output tensor shape: {output.shape}")
+        print(f"   Expected: [{batch_size}, {num_classes}]")
+        
+        assert output.shape == (batch_size, num_classes), \
+            f"Shape mismatch! Got {output.shape}, expected ({batch_size}, {num_classes})"
+        
+        print("\nTest passed!")
+        
+    except Exception as e:
+        print(f"\nTest failed with error:")
+        print(f"   {type(e).__name__}: {e}")
+        raise
+
+
+
+def test_efficientnet_b7():
+    """Test the ResNet50 model"""
+    print("\n" + "="*60)
+    print("Testing ResNet50...")
+    
+    cfg = {"class": "efficientnet_b7"}
+    input_size = (1, 64, 64) #changer le 3 en 1 sur resnet
     batch_size = 32
     num_classes = 10
     
@@ -117,4 +158,5 @@ if __name__ == "__main__":
     test_cnn()
     test_custom_cnn()
     test_resnet50()
+    test_efficientnet_b7()
     print("\n" + "="*60 + "\nAll tests completed.")
