@@ -241,6 +241,11 @@ def train(config):
     logging.info(f"Best model saved at: {logdir / 'best_model.pt'}")
     logging.info(f"Best validation loss: {model_checkpoint.best_score}")
     logging.info("=" * 60)
+
+    #A ajouter pour éviter une evaluation en prenant le mauvais modèle, ça écrit dans le config le path du modele entrainer pour le test apres qui s'enchaine
+    '''config["logging"]["model_path"] = str(logdir / "best_model.pt")
+    with open(logdir / "config.yaml", "w") as file:
+        yaml.dump(config, file)'''
     
     if wandb_log is not None:
         wandb.finish()
