@@ -135,7 +135,7 @@ def train(config):
         + f"{loss}\n\n"
         + "## Datasets : \n"
         + f"Train : {train_loader.dataset.dataset}\n"
-        + f"Validation : {valid_loader.dataset.dataset}"
+        + f"Validation : {valid_loader.dataset.dataset}"#Va afficher le meme nombre de sample pour les deux mais c'est normale, c'est parce qu'on parle de leur subset
     )
     with open(logdir / "summary.txt", "w") as f:
         f.write(summary_text)
