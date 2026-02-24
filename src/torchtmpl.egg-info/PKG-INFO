@@ -3,7 +3,7 @@ Name: torchtmpl
 Version: 0.0.1
 License-File: LICENSE
 Requires-Dist: PyYAML>=6.0
-Requires-Dist: torch>=2.0.1
+Requires-Dist: torch<2.1.0,>=1.13.0
 Requires-Dist: torchvision>=0.15.2
 Requires-Dist: torchinfo>=1.7.2
 Requires-Dist: wandb>=0.13.11
@@ -13,4 +13,5 @@ Requires-Dist: matplotlib>=3.7.1
 Requires-Dist: timm==1.0.22
 Requires-Dist: scikit-learn==1.7.0
 Requires-Dist: pandas>=2.0.0
+Requires-Dist: numpy<2
 Dynamic: license-file
