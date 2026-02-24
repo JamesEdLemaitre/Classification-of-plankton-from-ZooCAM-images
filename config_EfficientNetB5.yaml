@@ -16,8 +16,8 @@ optim:
     lr: 0.001
 
 nepochs: 10
-loss: "FocalLoss"
-# CrossEntropyLoss
+loss: "CrossEntropyLoss"
+# FocalLoss
 
 logging:
   # wandb: 
