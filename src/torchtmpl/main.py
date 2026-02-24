@@ -91,7 +91,16 @@ def train(config):
     logging.info("= Model")
     model_config = config["model"]
     model = models.build_model(model_config, input_size, num_classes)
-    
+
+    if "pretrained_model_path" in config["logging"]:
+        pretrained_path = config["logging"]["pretrained_model_path"]
+        if os.path.exists(pretrained_path):
+            logging.info(f"= Loading pretrained model from {pretrained_path}")
+            checkpoint = torch.load(pretrained_path, map_location=device)
+            model.load_state_dict(checkpoint)
+            logging.info(f"  Pretrained weights loaded")
+        else:
+            logging.warning(f"  Pretrained model not found at {pretrained_path}")
 
     # Build the loss
     logging.info("= Loss")

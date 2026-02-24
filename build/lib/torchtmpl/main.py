@@ -57,6 +57,20 @@ def train(config):
         data_config, use_cuda
     )
     class_weights = class_weights.to(device)
+
+    # Afficher la distribution des classes du validation_loader
+    class_counts = [0] * num_classes
+    for X, y in valid_loader:
+        for label in y:
+            class_counts[label.item()] += 1
+
+    total = 0
+    for i, count in enumerate(class_counts):
+        total += count
+    
+    print("\n📊 Validation Set Distribution:")
+    for i, count in enumerate(class_counts):
+        print(f"  Class {i}: {count/total}")
     
     # Calculer les class weights pour gérer le déséquilibre
     # logging.info("= Computing class weights")
@@ -72,11 +86,21 @@ def train(config):
     # class_weights = torch.FloatTensor(class_weights)
     # logging.info(f"  Class weights: {class_weights.numpy()}")
 
+
     # Build the model
     logging.info("= Model")
     model_config = config["model"]
     model = models.build_model(model_config, input_size, num_classes)
-    
+
+    if "pretrained_model_path" in config["logging"]:
+        pretrained_path = config["logging"]["pretrained_model_path"]
+        if os.path.exists(pretrained_path):
+            logging.info(f"= Loading pretrained model from {pretrained_path}")
+            checkpoint = torch.load(pretrained_path, map_location=device)
+            model.load_state_dict(checkpoint)
+            logging.info(f"  Pretrained weights loaded")
+        else:
+            logging.warning(f"  Pretrained model not found at {pretrained_path}")
 
     # Build the loss
     logging.info("= Loss")
@@ -175,8 +199,12 @@ def train(config):
             current_lr = optimizer.param_groups[0]['lr']
             logging.info(f"  Current LR: {current_lr:.6f}")
 
-        # updated = model_checkpoint.update(test_loss)
-        updated = model_checkpoint.update(metrics['f1'])
+        updated = model_checkpoint.update(test_loss)
+        
+        #inutile il y a la focal loss j'ai pas besoin de faire une f1 loss
+        #updated = model_checkpoint.update(metrics['f1'])
+        #
+
         logging.info(
             "[%d/%d] Train loss: %.3f | Validation loss : %.3f %s | metrics: %s"
             % (
@@ -222,6 +250,11 @@ def train(config):
     logging.info(f"Best model saved at: {logdir / 'best_model.pt'}")
     logging.info(f"Best validation loss: {model_checkpoint.best_score}")
     logging.info("=" * 60)
+
+    #A ajouter pour éviter une evaluation en prenant le mauvais modèle, ça écrit dans le config le path du modele entrainer pour le test apres qui s'enchaine
+    '''config["logging"]["model_path"] = str(logdir / "best_model.pt")
+    with open(logdir / "config.yaml", "w") as file:
+        yaml.dump(config, file)'''
     
     if wandb_log is not None:
         wandb.finish()

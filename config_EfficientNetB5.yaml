@@ -25,6 +25,8 @@ logging:
   #   entity: sample_entity
   logdir: "./logs" 
   results_path: "./results"
+  pretrained_model_path: "./logs/efficientnet_b5_0/best_model.pt"
+  #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
   class: "ReduceLROnPlateau"

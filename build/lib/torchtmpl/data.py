@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 
 from torch.utils.data import WeightedRandomSampler
 
+from sklearn.model_selection import StratifiedShuffleSplit
+
 def show_image(X):
     num_c = X.shape[0]
     plt.figure()
@@ -324,20 +326,40 @@ def get_dataloaders(data_config, use_cuda):
     if not use_rgb:
         transform_list.append(transforms.Grayscale())  # 1 canal
     # Sinon, reste en RGB natif (3 canaux)
-    
-    transform_list.extend([
+
+    # Train transform WITH augmentation
+    train_transform = transforms.Compose([
+        transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
         transforms.Resize((resize, resize)),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(15),
         transforms.ToTensor()
     ])
 
-    input_transform = transforms.Compose(transform_list)
+    # Valid/Test transform WITHOUT augmentation
+    valid_transform = transforms.Compose([
+        transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
+        transforms.Resize((resize, resize)),
+        transforms.ToTensor()
+    ])
+
+    '''input_transform = transforms.Compose(transform_list)
 
     base_dataset = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"], 
         transform=input_transform,
+    )'''
+
+    base_dataset = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=train_transform
     )
+    base_dataset_without_transform = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=valid_transform
+    )
+
+# Puis faire le split manuellement sur les indices
 
     logging.info(f"  - I loaded {len(base_dataset)} samples")
 
@@ -362,27 +384,39 @@ def get_dataloaders(data_config, use_cuda):
     
     # Créer les sample weights pour le sampler
     sample_weights = class_weights_array[targets]
+
+    #calculer la distribution par classe
+    proportions = class_counts / np.sum(class_counts)
     
     # Logs informatifs
     logging.info(f"    Classes: {num_classes}, Samples: {total_samples:,}")
     logging.info(f"    Weights range: [{class_weights_array.min():.4f}, {class_weights_array.max():.4f}]")
+    logging.info(f" Densité de la proportion des classes {proportions}")
 
     indices = list(range(len(base_dataset)))
+    '''
     random.shuffle(indices)
     num_valid = int(valid_ratio * len(base_dataset))
     train_indices = indices[num_valid:]
-    valid_indices = indices[:num_valid]
+    valid_indices = indices[:num_valid]'''
+
+    #on split par class
+    splitter = StratifiedShuffleSplit(n_splits=1, test_size=valid_ratio, random_state=42)
+    train_indices, valid_indices = next(splitter.split(indices, targets))
 
     train_dataset = torch.utils.data.Subset(base_dataset, train_indices)
-    valid_dataset = torch.utils.data.Subset(base_dataset, valid_indices)
-
+    valid_dataset = torch.utils.data.Subset(base_dataset_without_transform, valid_indices)
+    
     # Build the dataloaders
     train_weights = [sample_weights[i] for i in train_indices]
     sampler = WeightedRandomSampler(
         weights=train_weights,
-        num_samples=len(train_weights)//6,
+        #Pour n'utiliser que 1/6 eme des données
+        #num_samples=len(train_weights)//6,
+        num_samples=len(train_weights),
         replacement=True
     )
+
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=batch_size,
@@ -398,6 +432,9 @@ def get_dataloaders(data_config, use_cuda):
         num_workers=num_workers,
         pin_memory=use_cuda,
     )
+
+    logging.info(f"Train size: {len(train_loader.dataset)} | Valid size: {len(valid_loader.dataset)}")
+
     num_classes = len(base_dataset.classes)
     input_size = tuple(base_dataset[0][0].shape)
 
@@ -409,7 +446,7 @@ def test_dataloaders():
     print("Test dataloaders:")
     
     data_config = {
-        "trainpath": "./data/train",
+        "trainpath": "/mounts/datasets/datasets/2025-ZooCamChallenge/train",
         "valid_ratio": 0.2,
         "batch_size": 32,
         "num_workers": 0,
@@ -429,9 +466,20 @@ def test_dataloaders():
 
     print(f"Use CUDA: {use_cuda} | Device: {device}")
 
-    train_loader, valid_loader, input_size, num_classes = get_dataloaders(
+    train_loader, valid_loader, input_size, num_classes, class_weights = get_dataloaders(
         data_config, use_cuda
     )
+
+    # Compter les classes dans valid_loader
+    class_counts = [0] * num_classes
+    for X, y in valid_loader:
+        for label in y:
+            class_counts[label.item()] += 1
+
+    # Afficher
+    print("\n📊 Validation Set Distribution:")
+    for cls, count in zip(base_dataset.classes, class_counts):
+        print(f"  {cls}: {count}")
 
     # Afficher la distribution
     base_dataset = torchvision.datasets.ImageFolder(

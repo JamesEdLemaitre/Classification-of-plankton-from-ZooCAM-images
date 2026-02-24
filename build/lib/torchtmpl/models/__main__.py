@@ -114,12 +114,12 @@ def test_resnet50():
 
 
 
-def test_efficientnet_b7():
-    """Test the ResNet50 model"""
+def test_efficientnet_b5():
+    """Test the efficientnet_b5 model"""
     print("\n" + "="*60)
-    print("Testing ResNet50...")
+    print("Testing efficientnet_b5...")
     
-    cfg = {"class": "efficientnet_b7"}
+    cfg = {"class": "efficientnet_b5"}
     input_size = (1, 64, 64) #changer le 3 en 1 sur resnet
     batch_size = 32
     num_classes = 10
@@ -158,5 +158,5 @@ if __name__ == "__main__":
     test_cnn()
     test_custom_cnn()
     test_resnet50()
-    test_efficientnet_b7()
+    test_efficientnet_b5()
     print("\n" + "="*60 + "\nAll tests completed.")

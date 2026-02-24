@@ -16,7 +16,7 @@ class FocalLoss(nn.Module):
         self.reduction = reduction
         
     def forward(self, inputs, targets):
-        # Calcul de la CrossEntropy standard (sans réduction)
+        # Calcul de la CrossEntropy brute : -log(pt)
         ce_loss = F.cross_entropy(inputs, targets, reduction='none')
         
         # Calcul des probabilités prédites: pt = exp(-ce_loss) = p(classe_correcte)
