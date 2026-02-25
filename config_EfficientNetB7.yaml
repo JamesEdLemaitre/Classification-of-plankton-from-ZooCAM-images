@@ -5,10 +5,10 @@ data:
   # testpath: '../data/test' 
   trainpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/train'  
   testpath: '/mounts/datasets/datasets/2025-ZooCamChallenge/test'
-  batch_size: 64
+  batch_size: 32
   num_workers: 8
   valid_ratio: 0.2
-  images_resize: 128
+  images_resize: 80
 
 optim:
   algo: AdamW
