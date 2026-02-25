@@ -75,17 +75,33 @@ def efficientnet_b5(cfg, input_size, num_classes):
     weights = EfficientNet_B5_Weights.IMAGENET1K_V1
     model = efficientnet_b5(weights=weights)
 
+    # ✅ Sauvegarder les poids pré-entraînés AVANT de remplacer
+    pretrained_weight = model.features[0][0].weight.data  # shape: [32, 3, 3, 3]
+
     print(model.features[0][0])  # Première couche
     #print(model.classifier[1])   # Dernière couche linéaire
+    #print(model.classifier)   # Dernière couche linéaire
 
-    model.features[0][0] = nn.Conv2d(
-        input_size[0],
-        model.features[0][0].out_channels, #32 en dur
-        kernel_size=model.features[0][0].kernel_size[0],
-        stride=model.features[0][0].stride[0],
-        padding=model.features[0][0].padding[0],
-        bias=False, ## si on fait de la batch normalization le bias sert a rien
-    )
+    if input_size[0] == 1:
+        print("Input size égal à 1, les images sont en nuances de gris")
+        model.features[0][0] = nn.Conv2d(
+            input_size[0],
+            model.features[0][0].out_channels, #32 en dur
+            kernel_size=model.features[0][0].kernel_size[0],
+            stride=model.features[0][0].stride[0],
+            padding=model.features[0][0].padding[0],
+            bias=False, ## si on fait de la batch normalization le bias sert a rien
+        )
+
+        # ✅ Initialiser avec la moyenne des 3 canaux RGB pré-entraînés
+        with torch.no_grad():
+            model.features[0][0].weight = nn.Parameter(
+                pretrained_weight.mean(dim=1, keepdim=True)  # shape: [32, 1, 3, 3]
+            )
+    elif input_size[0] == 3:
+        print("Input size égal à 3, les images sont en RGB. \nNe pas toucher à la première couche de convolution si on part du modèle préentrainé")
+    else : 
+        print("Le input size n'est ni 1 ni 3, implémenter une nouvelle façon de transferer les poids préentrainé en nouvelle dimension")
 
     print("nombre de channel : ", input_size[0])
 
