@@ -92,7 +92,7 @@ def submit_job(job):
 # of the version of the code you want to evaluate
 result = int(
     subprocess.run(
-        "expr $(git diff --name-only | wc -l) + $(git diff --name-only --cached | wc -l)",
+        "expr $(git diff --name-only | grep -v '^logslurms/' | wc -l) + $(git diff --name-only --cached | grep -v '^logslurms/'  | wc -l)",
         shell=True,
         stdout=subprocess.PIPE,
     ).stdout.decode()
