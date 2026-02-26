@@ -64,6 +64,7 @@ class ModelCheckpoint(object):
     def update(self, score):
         if self.is_better(score):
             torch.save(self.model.state_dict(), self.savepath)
+            print(f"Best model saved at: {self.savepath}")
             self.best_score = score
             return True
         return False
