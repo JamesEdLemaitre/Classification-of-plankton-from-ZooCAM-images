@@ -9,7 +9,7 @@ data:
   num_workers: 8
   valid_ratio: 0.2
   images_resize: 128
-  #rgb: true
+  rgb: true
 
 optim:
   algo: AdamW
@@ -17,16 +17,16 @@ optim:
     lr: 0.001
 
 nepochs: 10
-loss: "FocalLoss"
-# CrossEntropyLoss
+loss: "CrossEntropyLoss"
+# FocalLoss
 
 logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs" 
+  logdir: "./logs/RGB" 
   results_path: "./results/RGBEfficientnetb5"
-  pretrained_model_path: "./logs/efficientnet_b5_0/best_model.pt"
+  #pretrained_model_path: "./logs/efficientnet_b5_0/best_model.pt"
   #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
