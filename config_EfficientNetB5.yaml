@@ -24,10 +24,11 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/RGB" 
-  results_path: "./results/RGBEfficientnetb5"
-  #pretrained_model_path: "./logs/efficientnet_b5_0/best_model.pt"
-  #model_path: "./logs/ResNet50_0/best_model.pt"  
+  logdir: "./logs/RGB/efficientnet_b5_1_20epochs" 
+  results_path: "./results/RGBEfficientnetb5/20epochs"
+  pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
+  #model_path: "./logs/efficientnet_b5_0/best_model.pt"  
+  
 
 scheduler:
   class: "ReduceLROnPlateau"
