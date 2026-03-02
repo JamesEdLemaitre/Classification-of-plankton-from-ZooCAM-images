@@ -183,7 +183,7 @@ def train(config):
 
     for e in epoch_pbar:
         # Train 1 epoch
-        train_loss = utils.train(model, train_loader, loss, optimizer, device)
+        train_loss = utils.train(model, train_loader, loss, optimizer, device, scheduler=scheduler)
         train_losses.append(train_loss)
 
         # Test
@@ -194,8 +194,8 @@ def train(config):
             # Différent selon le type de scheduler
             if isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 scheduler.step(test_loss)  
-            else:
-                scheduler.step()  
+            '''else:
+                scheduler.step()  '''
             
             # Log le learning rate actuel
             current_lr = optimizer.param_groups[0]['lr']
