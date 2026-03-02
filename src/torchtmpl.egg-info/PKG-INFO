@@ -14,5 +14,5 @@ Requires-Dist: timm==1.0.22
 Requires-Dist: scikit-learn==1.7.0
 Requires-Dist: pandas>=2.0.0
 Requires-Dist: numpy<2
-Requires-Dist: transformers>=4.0.0
+Requires-Dist: transformers<4.36.0,>=4.30.0
 Dynamic: license-file
