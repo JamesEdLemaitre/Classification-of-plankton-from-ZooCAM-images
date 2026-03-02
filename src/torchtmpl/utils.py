@@ -109,6 +109,7 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True, schedu
 
         if scheduler is not None and not isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
             scheduler.step()
+            print("Scheduler en action")
 
         # Update the metrics
         # We here consider the loss is batch normalized
