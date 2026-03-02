@@ -136,6 +136,7 @@ def train(config):
         + "## Datasets : \n"
         + f"Train : {train_loader.dataset.dataset}\n"
         + f"Validation : {valid_loader.dataset.dataset}"#Va afficher le meme nombre de sample pour les deux mais c'est normale, c'est parce qu'on parle de leur subset
+        + f"Vrai taille du train : {len(train_loader)}"
     )
     with open(logdir / "summary.txt", "w") as f:
         f.write(summary_text)
@@ -152,9 +153,10 @@ def train(config):
     optimizer = optim.get_optimizer(optim_config, model.parameters())
 
     logging.info("= Learning Rate Scheduler")
+    num_steps = config["nepochs"] * len(train_loader)  #formule
     if "scheduler" in config:
         scheduler_config = config["scheduler"]
-        scheduler = optim.get_scheduler(scheduler_config, optimizer)
+        scheduler = optim.get_scheduler(scheduler_config, optimizer, num_steps)
         logging.info(f"  Using scheduler: {scheduler_config['class']}")
     else:
         scheduler = None

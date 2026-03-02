@@ -8,6 +8,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from transformers import get_cosine_schedule_with_warmup
+
+
 class FocalLoss(nn.Module):
     def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
         super(FocalLoss, self).__init__()
@@ -68,7 +71,7 @@ def get_optimizer(cfg, params):
 
 import torch.optim as optim_torch
 
-def get_scheduler(config, optimizer):
+def get_scheduler(config, optimizer, num_steps=None):
     """
     Build a learning rate scheduler.
     
@@ -102,6 +105,16 @@ def get_scheduler(config, optimizer):
     
     elif scheduler_class == "CosineAnnealingWarmRestarts":
         return optim_torch.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, **params)
+    
+    
+    elif scheduler_class == "CosineDecayWarmup":
+        if num_steps is None:
+            raise ValueError("CosineDecayWarmup nécessite num_steps (nepochs × len(train_loader))")
+        warmup_steps = int(0.05 * num_steps)  # 5% de warmup automatiquement
+        return get_cosine_schedule_with_warmup(optimizer,
+            num_warmup_steps=warmup_steps,
+            num_training_steps=num_steps
+        )
     
     else:
         raise ValueError(f"Unknown scheduler class: {scheduler_class}")
