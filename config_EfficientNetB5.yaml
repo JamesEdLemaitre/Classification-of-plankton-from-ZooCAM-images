@@ -16,7 +16,7 @@ optim:
   params:
     lr: 0.001
 
-nepochs: 10
+nepochs: 50
 loss: "CrossEntropyLoss"
 # FocalLoss
 
@@ -24,8 +24,8 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/RGB/efficientnet_b5_1_20epochs" 
-  results_path: "./results/RGBEfficientnetb5/20epochs"
+  logdir: "./logs/RGB/efficientnet_b5_1_60epochs" 
+  results_path: "./results/RGBEfficientnetb5/60epochs"
   pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
   #model_path: "./logs/efficientnet_b5_0/best_model.pt"  
   
