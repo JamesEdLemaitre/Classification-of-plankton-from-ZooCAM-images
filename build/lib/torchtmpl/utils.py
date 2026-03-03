@@ -70,7 +70,7 @@ class ModelCheckpoint(object):
         return False
 
 
-def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
+def train(model, loader, f_loss, optimizer, device, dynamic_display=True, scheduler=None):
     """
     Train a model for one epoch, iterating over the loader
     using the f_loss to compute the loss and the optimizer
@@ -106,6 +106,9 @@ def train(model, loader, f_loss, optimizer, device, dynamic_display=True):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+
+        if scheduler is not None and not isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            scheduler.step()
 
         # Update the metrics
         # We here consider the loss is batch normalized

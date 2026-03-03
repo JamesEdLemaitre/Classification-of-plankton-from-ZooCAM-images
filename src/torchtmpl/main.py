@@ -289,7 +289,9 @@ def test(config):
     
     transform_list.extend([
         transforms.Resize((resize, resize)),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomVerticalFlip(p=0.5)
     ])
 
     transform_list = transforms.Compose(transform_list)

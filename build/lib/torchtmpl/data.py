@@ -21,6 +21,10 @@ from torch.utils.data import WeightedRandomSampler
 
 from sklearn.model_selection import StratifiedShuffleSplit
 
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+
 def show_image(X):
     num_c = X.shape[0]
     plt.figure()
@@ -332,9 +336,11 @@ def get_dataloaders(data_config, use_cuda):
         transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
         transforms.Resize((resize, resize)),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(15), #Pourquoi pas appliquer affine
+        transforms.CoarseDropout(num_holes_range=(1, 3),hole_height_range=(0.05, 0.15),hole_width_range=(0.05, 0.15), p=0.5),
         transforms.ToTensor()
-    ])
+    ])  #FAIRE DE LA NORMALISATION
 
     # Valid/Test transform WITHOUT augmentation
     valid_transform = transforms.Compose([

@@ -36,6 +36,34 @@ def ResNet50(cfg, input_size, num_classes):
 
     return model
 
+#appeler un resnet 50 pretrained
+def ResNet34(cfg, input_size, num_classes):
+    """
+    ResNet34 model from torchvision.models
+    """
+    from torchvision.models import resnet34, ResNet34_Weights
+
+    # Load a pretrained ResNet50 model
+    model = ResNet34(weights=ResNet34_Weights.IMAGENET1K_V1)
+
+    # Modify the first convolutional layer if the input has a different number of channels
+    if input_size[0] != 3:
+        model.conv1 = nn.Conv2d(
+            input_size[0],
+            64, #nombre de canaux de sorties
+            kernel_size=7,#filtre de dimension 7*7
+            stride=2,
+            padding=3,
+            bias=False,
+        )
+
+    print("nombre de channel : ", input_size[0])
+
+    # Modify the final fully connected layer to match the number of classes
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
+
+    return model
+
 
 def efficientnet_b7(cfg, input_size, num_classes):
     import timm

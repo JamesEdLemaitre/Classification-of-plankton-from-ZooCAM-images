@@ -21,6 +21,10 @@ from torch.utils.data import WeightedRandomSampler
 
 from sklearn.model_selection import StratifiedShuffleSplit
 
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
+
 def show_image(X):
     num_c = X.shape[0]
     plt.figure()
@@ -328,19 +332,39 @@ def get_dataloaders(data_config, use_cuda):
     # Sinon, reste en RGB natif (3 canaux)
 
     # Train transform WITH augmentation
-    train_transform = transforms.Compose([
+    '''train_transform = transforms.Compose([
         transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
         transforms.Resize((resize, resize)),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(15),
+        transforms.RandomVerticalFlip(p=0.5),
+        #transforms.RandomRotation(15), #Pourquoi pas appliquer affine
+        #transforms.CoarseDropout(num_holes_range=(1, 3),hole_height_range=(0.05, 0.15),hole_width_range=(0.05, 0.15), p=0.5),
         transforms.ToTensor()
+    ])  #FAIRE DE LA NORMALISATION'''
+
+    train_transform = A.Compose([
+        A.Grayscale(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
+        A.Resize(resize, resize),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+        A.Rotate(limit=(-15, 15), p=0.5),
+        #A.CoarseDropout(num_holes_range=(1, 3),hole_height_range=(0.05, 0.15),hole_width_range=(0.05, 0.15),p=0.5),
+        A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
+        ToTensorV2()
     ])
 
     # Valid/Test transform WITHOUT augmentation
-    valid_transform = transforms.Compose([
+    '''valid_transform = transforms.Compose([
         transforms.Grayscale() if not use_rgb else transforms.Lambda(lambda x: x),
         transforms.Resize((resize, resize)),
         transforms.ToTensor()
+    ])'''
+
+    valid_transform = A.Compose([
+        A.Grayscale(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
+        A.Resize(resize, resize),
+        A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
+        ToTensorV2()
     ])
 
     '''input_transform = transforms.Compose(transform_list)
@@ -350,13 +374,29 @@ def get_dataloaders(data_config, use_cuda):
         transform=input_transform,
     )'''
 
-    base_dataset = torchvision.datasets.ImageFolder(
+    #AJOUTER
+    class AlbumentationsWrapper:
+        def __init__(self, albu_transform):
+            self.albu_transform = albu_transform
+        def __call__(self, pil_img):
+            img = np.array(pil_img)  # PIL → numpy
+            return self.albu_transform(image=img)["image"]
+
+    '''base_dataset = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"],
         transform=train_transform
+    )'''
+    base_dataset = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=AlbumentationsWrapper(train_transform)  # ← wrapper
     )
-    base_dataset_without_transform = torchvision.datasets.ImageFolder(
+    '''base_dataset_without_transform = torchvision.datasets.ImageFolder(
         root=data_config["trainpath"],
         transform=valid_transform
+    )'''
+    base_dataset_without_transform = torchvision.datasets.ImageFolder(
+        root=data_config["trainpath"],
+        transform=AlbumentationsWrapper(valid_transform)  # ← wrapper
     )
 
 # Puis faire le split manuellement sur les indices
