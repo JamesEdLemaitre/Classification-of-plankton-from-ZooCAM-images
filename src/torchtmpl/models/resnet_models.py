@@ -44,7 +44,7 @@ def ResNet34(cfg, input_size, num_classes):
     from torchvision.models import resnet34, ResNet34_Weights
 
     # Load a pretrained ResNet50 model
-    model = ResNet34(weights=ResNet34_Weights.IMAGENET1K_V1)
+    model = resnet34(weights=ResNet34_Weights.IMAGENET1K_V1)
 
     # Modify the first convolutional layer if the input has a different number of channels
     if input_size[0] != 3:

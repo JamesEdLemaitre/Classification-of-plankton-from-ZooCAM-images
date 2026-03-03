@@ -343,10 +343,11 @@ def get_dataloaders(data_config, use_cuda):
     ])  #FAIRE DE LA NORMALISATION'''
 
     train_transform = A.Compose([
-        A.Grayscale(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
+        A.ToGray(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
         A.Resize(resize, resize),
         A.HorizontalFlip(p=0.5),
         A.VerticalFlip(p=0.5),
+        #A.Affine(scale=(0.9, 1.1),p=0.5),
         A.Rotate(limit=(-15, 15), p=0.5),
         #A.CoarseDropout(num_holes_range=(1, 3),hole_height_range=(0.05, 0.15),hole_width_range=(0.05, 0.15),p=0.5),
         A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
@@ -361,7 +362,7 @@ def get_dataloaders(data_config, use_cuda):
     ])'''
 
     valid_transform = A.Compose([
-        A.Grayscale(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
+        A.ToGray(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
         A.Resize(resize, resize),
         A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
         ToTensorV2()

@@ -24,7 +24,7 @@ logging:
   #   project: sample_project
   #   entity: sample_entity
   logdir: "./logs/Resnet34/VerticalFlip" 
-  results_path: "./results/Resnet34"
+  results_path: "./results/Resnet34/VerticalFlip"
   #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
