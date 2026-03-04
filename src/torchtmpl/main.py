@@ -163,18 +163,43 @@ def train(config):
         logging.info("  No scheduler specified")
 
 
-    # Define the early stopping callback
-    model_checkpoint = utils.ModelCheckpoint(
-        model, str(logdir / "best_model.pt"), min_is_best=False
-    )
-
     # Listes pour stocker les losses
     train_losses = []
     valid_losses = []
     F1_scores = []
 
+    if "resume_checkpoint" in config["logging"] and "pretrained_model_path" in config["logging"]:
+        #print("ATTENTION \nNE PAS UTILSIER resume_checkpoint et pretrained_model_path à la fois !\nresume_checkpoint écrase pretrained_model_path")
+        raise ValueError(
+            "Ne pas utiliser 'resume_checkpoint' et 'pretrained_model_path' à la fois !\n"
+            "'resume_checkpoint' écrase 'pretrained_model_path'."
+        )
+
+    ##### Reprendre un entraînement complet (modèle + optimizer + scheduler)
+    start_epoch = 0
+    if "resume_checkpoint" in config["logging"]:
+        resume_path = config["logging"]["resume_checkpoint"]
+        if os.path.exists(resume_path):
+            logging.info(f"= Resuming from checkpoint: {resume_path}")
+            checkpoint = torch.load(resume_path, map_location=device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            if scheduler is not None and checkpoint['scheduler_state_dict'] is not None:
+                scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            start_epoch = checkpoint['epoch'] + 1
+            train_losses = checkpoint['train_losses']
+            valid_losses = checkpoint['valid_losses']
+            F1_scores = checkpoint['F1_scores']
+            logging.info(f"  Resuming from epoch {start_epoch}")
+    #####
+
+    # Define the early stopping callback
+    model_checkpoint = utils.ModelCheckpoint(
+        model, str(logdir / "best_model.pt"), min_is_best=False
+    )
+
     epoch_pbar = tqdm(
-        range(config["nepochs"]), 
+        range(start_epoch, config["nepochs"]), 
         desc="Training", 
         unit="epoch",
         position=0,
@@ -235,6 +260,7 @@ def train(config):
             'scheduler_state_dict': scheduler.state_dict() if scheduler is not None else None,
             'train_losses': train_losses,
             'valid_losses': valid_losses,
+            'F1_scores' : F1_scores
         }, str(logdir / "last_checkpoint.pt"))
 
 

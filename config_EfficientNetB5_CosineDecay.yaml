@@ -26,6 +26,8 @@ logging:
   #   entity: sample_entity
   logdir: "./logs/Cosine" 
   results_path: "./results/Cosine"
+  #resume_checkpoint: "./logs/ResNet50_0/last_checkpoint.pt"
+  ###NE PAS UTILSIER resume_checkpioont et pretrained_model_path à la fois !
   #pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
   #model_path: "./logs/efficientnet_b5_0/best_model.pt"  
   
