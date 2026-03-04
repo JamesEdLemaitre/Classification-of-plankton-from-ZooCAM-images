@@ -165,12 +165,13 @@ def train(config):
 
     # Define the early stopping callback
     model_checkpoint = utils.ModelCheckpoint(
-        model, str(logdir / "best_model.pt"), min_is_best=True
+        model, str(logdir / "best_model.pt"), min_is_best=False
     )
 
     # Listes pour stocker les losses
     train_losses = []
     valid_losses = []
+    F1_scores = []
 
     epoch_pbar = tqdm(
         range(config["nepochs"]), 
@@ -189,6 +190,7 @@ def train(config):
         # Test
         test_loss, test_metrics = utils.test(model, valid_loader, loss, device)
         valid_losses.append(test_loss)
+        F1_scores.append(test_metrics["f1"])
 
         if scheduler is not None:
             # Différent selon le type de scheduler
@@ -201,7 +203,7 @@ def train(config):
             current_lr = optimizer.param_groups[0]['lr']
             logging.info(f"  Current LR: {current_lr:.6f}")
 
-        updated = model_checkpoint.update(test_loss)
+        updated = model_checkpoint.update(test_metrics['f1'])
         
         #inutile il y a la focal loss j'ai pas besoin de faire une f1 loss
         #updated = model_checkpoint.update(metrics['f1'])
@@ -224,12 +226,24 @@ def train(config):
         if wandb_log is not None:
             logging.info("Logging on wandb")
             wandb_log(metrics)
+        
+        # Sauvegarder le checkpoint complet à chaque epoch
+        torch.save({
+            'epoch': e,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict() if scheduler is not None else None,
+            'train_losses': train_losses,
+            'valid_losses': valid_losses,
+        }, str(logdir / "last_checkpoint.pt"))
+
 
     # Créer et sauvegarder le graphique des losses
     plt.figure(figsize=(10, 6))
     epochs = np.arange(1, len(train_losses) + 1)
     plt.plot(epochs, train_losses, 'b-', label='Train Loss', linewidth=2)
     plt.plot(epochs, valid_losses, 'r-', label='Validation Loss', linewidth=2)
+    plt.plot(epochs, F1_scores, 'g-', label='F1 score', linewidth=2)
     plt.xlabel('Epoch', fontsize=12)
     plt.ylabel('Loss', fontsize=12)
     plt.title('Training and Validation Loss', fontsize=14)
@@ -289,9 +303,9 @@ def test(config):
     
     transform_list.extend([
         transforms.Resize((resize, resize)),
-        transforms.ToTensor(),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomVerticalFlip(p=0.5)
+        transforms.ToTensor()
+        #transforms.RandomHorizontalFlip(p=0.5),
+        #transforms.RandomVerticalFlip(p=0.5)
     ])
 
     transform_list = transforms.Compose(transform_list)
