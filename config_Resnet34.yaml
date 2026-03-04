@@ -23,8 +23,8 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/Resnet34/AffineScale" 
-  results_path: "./results/Resnet34/AffineScale"
+  logdir: "./logs/Resnet34/Coarse/Normalize" 
+  results_path: "./results/Resnet34/Coarse/Normalize"
   #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
