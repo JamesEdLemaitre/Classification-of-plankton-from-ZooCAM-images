@@ -364,7 +364,8 @@ def get_dataloaders(data_config, use_cuda):
     valid_transform = A.Compose([
         A.ToGray(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
         A.Resize(resize, resize),
-        A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
+        #A.ToFloat(max_value=255),  # uint8 [0,255] → float32 [0,1] comme transforms.ToTensor()
+        A.Normalize(mean=[0.879857, 0.879857, 0.879857], std=[0.190819, 0.190819, 0.190819], p=1.0),
         ToTensorV2()
     ])
 

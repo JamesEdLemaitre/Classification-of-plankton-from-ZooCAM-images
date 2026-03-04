@@ -23,6 +23,9 @@ from . import utils
 import matplotlib.pyplot as plt
 import numpy as np
 
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+
 def get_device(gpu_id=None):
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -327,14 +330,33 @@ def test(config):
         transform_list.append(transforms.Grayscale())  # 1 canal
     # Sinon, reste en RGB natif (3 canaux)
     
-    transform_list.extend([
+    """transform_list.extend([
         transforms.Resize((resize, resize)),
         transforms.ToTensor()
         #transforms.RandomHorizontalFlip(p=0.5),
         #transforms.RandomVerticalFlip(p=0.5)
     ])
 
-    transform_list = transforms.Compose(transform_list)
+    transform_list = transforms.Compose(transform_list)"""
+
+    ##### ✅ Même pipeline qu'en validation et qu'avant
+    test_transform = A.Compose([
+        A.ToGray(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
+        A.Resize(resize, resize),
+        A.Normalize(mean=[0.879857, 0.879857, 0.879857], std=[0.190819, 0.190819, 0.190819], p=1.0),
+        ToTensorV2()
+    ])
+
+    class AlbumentationsWrapper:
+        def __init__(self, albu_transform):
+            self.albu_transform = albu_transform
+        def __call__(self, pil_img):
+            img = np.array(pil_img)
+            return self.albu_transform(image=img)["image"]
+        
+
+    transform_list = AlbumentationsWrapper(test_transform)  # ← plus de transforms.Compose
+    #####
 
     logging.info("= Getting number of classes from training set")
     train_dataset = torchvision.datasets.ImageFolder(

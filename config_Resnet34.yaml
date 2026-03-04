@@ -9,6 +9,7 @@ data:
   num_workers: 8
   valid_ratio: 0.2
   images_resize: 128
+  rgb: true
 
 optim:
   algo: AdamW
