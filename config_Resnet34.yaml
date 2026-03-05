@@ -16,7 +16,7 @@ optim:
   params:
     lr: 0.001
 
-nepochs: 25
+nepochs: 40
 loss: "CrossEntropyLoss"
 # FocalLoss
 
@@ -30,11 +30,7 @@ logging:
   #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
-  class: "ReduceLROnPlateau"
-  mode: "min"        
-  factor: 0.7        
-  patience: 4
-  min_lr: 1.0e-6   
+  class: "CosineDecayWarmup"
 
 
 # model:
