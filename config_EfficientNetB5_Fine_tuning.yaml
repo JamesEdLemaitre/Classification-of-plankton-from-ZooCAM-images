@@ -21,16 +21,13 @@ nepochs: 10
 loss: "FocalLoss"
 # CrossEntropyLoss
 
-PAS FINIE:
-  DSIONDSJGNK
-
 logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/RGB/efficientnet_b5_1_60epochs" 
-  results_path: "./results/RGBEfficientnetb5/60epochs"
-  pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
+  logdir: "./logs/RGB/efficientnet_b5_1_60epochs/Finetuned10epochs" 
+  results_path: "./results/RGBEfficientnetb5/60epochs/Finetuned10epochs"
+  pretrained_model_path: "./logs/RGB/efficientnet_b5_1_60epochs/efficientnet_b5_0/best_model.pt"
   #model_path: "./logs/efficientnet_b5_0/best_model.pt"  
   
 
