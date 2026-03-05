@@ -16,7 +16,7 @@ optim:
   params:
     lr: 0.001
 
-nepochs: 30
+nepochs: 40
 loss: "CrossEntropyLoss"
 # FocalLoss
 
@@ -24,8 +24,8 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/Cosine" 
-  results_path: "./results/Cosine"
+  logdir: "./logs/Cosine/Avectransfo" 
+  results_path: "./results/Cosine/Avectransfo"
   #resume_checkpoint: "./logs/ResNet50_0/last_checkpoint.pt"
   ###NE PAS UTILSIER resume_checkpioont et pretrained_model_path à la fois !
   #pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
