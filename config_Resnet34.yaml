@@ -16,7 +16,7 @@ optim:
   params:
     lr: 0.001
 
-nepochs: 40
+nepochs: 30
 loss: "CrossEntropyLoss"
 # FocalLoss
 
@@ -24,9 +24,9 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/Resnet34/Coarse/Normalize" 
-  #resume_checkpoint: "./logs/ResNet50_0/last_checkpoint.pt"
-  results_path: "./results/Resnet34/Coarse/Normalize"
+  logdir: "./logs/Resnet34/Coarse/Normalize/secondtraining" 
+  resume_checkpoint: "./logs/Resnet34/Coarse/Normalize/ResNet34_0/last_checkpoint.pt"
+  results_path: "./results/Resnet34/Coarse/Normalize/secondtraining"
   #model_path: "./logs/ResNet50_0/best_model.pt"  
 
 scheduler:
