@@ -26,6 +26,8 @@ import numpy as np
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
+import torch.nn.functional as F
+
 def get_device(gpu_id=None):
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -339,11 +341,12 @@ def test(config):
 
     transform_list = transforms.Compose(transform_list)"""
 
-    ##### ✅ Même pipeline qu'en validation et qu'avant
+    # ✅ Même pipeline qu'en validation et qu'avant
     test_transform = A.Compose([
         A.ToGray(num_output_channels=1, p=1.0) if not use_rgb else A.NoOp(),
         A.Resize(resize, resize),
         A.Normalize(mean=[0.879857, 0.879857, 0.879857], std=[0.190819, 0.190819, 0.190819], p=1.0),
+        #A.ToFloat(max_value=255.0),  # uint8 [0,255] → float32 [0,1], sans normalisation pour pouvoir tester sur les anciens modèles non norm
         ToTensorV2()
     ])
 
@@ -356,7 +359,6 @@ def test(config):
         
 
     transform_list = AlbumentationsWrapper(test_transform)  # ← plus de transforms.Compose
-    #####
 
     logging.info("= Getting number of classes from training set")
     train_dataset = torchvision.datasets.ImageFolder(
@@ -420,12 +422,32 @@ def test(config):
     predictions = []
     filenames = []
     
-    with torch.no_grad():
+    '''with torch.no_grad():
         for images, _ in tqdm(test_loader, desc="Inference", unit="batch"):
             images = images.to(device)
             outputs = model(images)
             _, preds = torch.max(outputs, 1)
+            predictions.extend(preds.cpu().numpy())'''
+    
+    #####
+    print("\nTest time augmentation\n")
+    with torch.no_grad():
+        for images, _ in tqdm(test_loader, desc="Inference", unit="batch"):
+            images = images.to(device)
+
+            # Les 4 versions déterministes via torch (pas besoin de repasser par albumentations)
+            versions = [
+                images,                                          # original
+                torch.flip(images, dims=[3]),                   # hflip  (axe W)
+                torch.flip(images, dims=[2]),                   # vflip  (axe H)
+                torch.flip(images, dims=[2, 3]),                # hflip + vflip
+            ]
+
+            #outputs = model(images)
+            avg_probs = sum(F.softmax(model(v), dim=1) for v in versions) / 4
+            _, preds = torch.max(avg_probs, 1)
             predictions.extend(preds.cpu().numpy())
+    #####
     
     # Récupérer les noms de fichiers dans l'ordre
     for idx in range(len(test_dataset)):
