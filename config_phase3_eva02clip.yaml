@@ -1,0 +1,59 @@
+# Phase 2 — EVA02-CLIP ViT-Base/16 @ 256px (final model)
+# CLIP + MIM pretrained on 2B image-text pairs — radically different
+# pretraining from DINOv3 (self-supervised distillation) and EfficientNet
+# (supervised ImageNet). Maximizes ensemble decorrelation.
+# Uses DINOv3Model wrapper (multi-block CLS aggregation + 2-phase training).
+# Launch: python -m torchtmpl.main config_phase2_eva02clip.yaml train_dinov3
+data:
+  resize: 256  # Multiple of 16 for patch16. Different from DINOv3's 320px.
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "dino_clean"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "dino_clean"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      augmentations_version: "dino_clean"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+
+probas_cache_dir: "results/probas_20260225-141304"
+
+model:
+  class: "DINOv3Model"
+  backbone: "eva02_base_patch16_clip_224.merged2b"
+  pretrained: True
+  img_size: 256
+  n_last_blocks: 4        # Last 4 of 12 blocks → 768×4 = 3072-d
+  head_hidden_dim: 1024
+  drop_rate: 0.1
+  model_path: "./logs/DINOv3Model_10/best_model.pt"
+
+# Phase 1: Head-only warmup (backbone frozen)
+phase1:
+  nepochs: 5
+  lr: 0.001
+
+# Phase 2: Full fine-tuning with layer-wise LR decay
+phase2:
+  nepochs: 30
+  lr_backbone: 0.00001
+  lr_head: 0.0005
+  layer_decay: 0.75
+  weight_decay: 0.05
+
+loss:
+  class: "LabelSmoothingCE"
+  smoothing: 0.1
+
+logging:
+  logdir: "./logs"

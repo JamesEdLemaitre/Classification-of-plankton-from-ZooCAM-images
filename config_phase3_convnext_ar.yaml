@@ -1,0 +1,53 @@
+# Phase 2 — ConvNeXt-Tiny @ 320px with aspect-ratio-preserving resize
+# Uses heavy_preserve_ar: canonical rotation (long side vertical) + 
+# LongestMaxSize + white padding → no shape distortion.
+# 69% of images have AR > 1.2, 19% > 2.0 — preserving shape matters.
+# Launch: python -m torchtmpl.main config_phase2_convnext_ar.yaml train
+data:
+  resize: 320
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "heavy_preserve_ar"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "heavy_preserve_ar"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      augmentations_version: "heavy_preserve_ar"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+
+model:
+  class: "TimmModel"
+  backbone: "convnext_tiny.fb_in22k_ft_in1k"
+  pretrained: True
+  freeze_backbone: False
+  model_path: "./logs/TimmModel_36/epoch_40.pt"
+
+optim:
+  algo: "AdamW"
+  params:
+    lr: 0.0001
+    weight_decay: 0.01
+
+scheduler:
+  class: "CosineAnnealingLR"
+  T_max: 40
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+nepochs: 40
+
+checkpoint_interval: 5
+
+logging:
+  logdir: "./logs"

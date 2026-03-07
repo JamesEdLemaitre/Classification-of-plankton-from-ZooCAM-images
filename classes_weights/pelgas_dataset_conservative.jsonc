@@ -1,0 +1,27 @@
+{
+    "Actinopterygii__56693": 45,      // original: 90   → ratio 0.5x (critique, < 100)
+    "Candaciidae__61991": 75,         // original: 155  → ratio 0.5x
+    "larvae_Porcellanidae__92238": 0,  // original: 796  → assez d'original
+    "Amphipoda__45054": 100,           // original: 274  → ratio 0.36x
+    "Microsetella__92324": 100,        // original: 288  → ratio 0.35x
+    "larvae_Annelida__84965": 100,     // original: 336  → ratio 0.30x
+    "Obelia__72344": 0,                // original: 495  → pas de risque
+    "Phoronida__11491": 40,            // original: 86   → ratio 0.47x (critique, < 100)
+    "Metridinidae__61982": 0,          // original: 2251 → assez d'original
+    "Doliolida__25944": 40,            // original: 83   → ratio 0.48x (critique, < 100)
+    "Euterpina__62036": 0,             // original: 1305 → assez d'original
+    "Annelida__11518": 100,            // original: 352  → ratio 0.28x
+    "pluteus_Echinoidea__85000": 0,    // original: 2172 → assez d'original
+    "Ctenophora_Metazoa__11511": 50,   // original: 106  → ratio 0.47x (critique)
+    "Cnidaria_Metazoa__11512": 70,     // original: 142  → ratio 0.49x
+    "larvae_Echinodermata__92801": 0,   // original: 439  → assez d'original
+    "nectophore_Physonectae__84980": 0, // original: 159  → sous-ordre, risque confusion
+    "Pontellidae__61980": 100,          // original: 217  → ratio 0.46x
+    "Decapoda__45043": 0,               // original: 432  → assez d'original
+    "nectophore_Diphyidae__84976": 0,   // original: 1265 → assez d'original
+    "tail_Appendicularia__85004": 0,    // original: 11349 → assez d'original
+    "cyphonaute__84967": 0,             // original: 1435 → assez d'original
+    "megalopa__84991": 0,               // original: 1285 → assez d'original
+    "Harpacticoida__45071": 0,          // original: 581  → assez d'original
+    "Calocalanus__80164": 0             // original: 950  → assez d'original
+}

@@ -1,0 +1,94 @@
+# Progressive Fine-Tuning — ResNeXt50 @ 224px (AR-preserving)
+#
+# Starts from TimmModel_12/epoch_20.pt (resnext50_32x4d trained with heavy_preserve_ar)
+# and runs 7 stages of 10 epochs each, with increasingly aggressive augmentations.
+# After each stage, generates a TTA submission and auto-submits to Kaggle.
+#
+# Launch:
+#   conda run -n hub07_py311 python -m torchtmpl.main config_progressive_resnext50_ar.yaml progressive_finetune
+
+data:
+  resize: 224
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0.2
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "progressive_ar_stage0"   # overridden per stage
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "progressive_ar_stage0"   # overridden per stage
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      augmentations_version: "progressive_ar_stage0"   # overridden per stage
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+
+model:
+  class: "TimmModel"
+  backbone: "resnext50_32x4d"
+  pretrained: True
+  freeze_backbone: False
+  model_path: "./logs/TimmModel_12/epoch_20.pt"
+
+optim:
+  algo: "AdamW"
+  params:
+    lr: 0.0001
+    weight_decay: 0.01
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+# ──────────────────────────────────────────────────────────────
+# Progressive stages: each stage = 10 epochs with a specific
+# augmentations_version. LR can optionally be overridden per stage.
+# Difficulty increases: stage0 (warm-up) → stage6 (extreme).
+# ──────────────────────────────────────────────────────────────
+progressive_stages:
+  - augmentations_version: "progressive_ar_stage0"
+    nepochs: 10
+    lr: 0.00010        # warm-up: standard LR, gentle augmentations
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage1"
+    nepochs: 10
+    lr: 0.00008        # light augmentations
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage2"
+    nepochs: 10
+    lr: 0.00006        # heavy_preserve_ar equivalent
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage3"
+    nepochs: 10
+    lr: 0.00005        # transition 1: medium-hard (first spatial distortions)
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage4"
+    nepochs: 10
+    lr: 0.00004        # transition 2: hard (all distortion types present)
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage5"
+    nepochs: 10
+    lr: 0.00003        # very hard: strong distortions + aggressive noise
+    weight_decay: 0.01
+
+  - augmentations_version: "progressive_ar_stage6"
+    nepochs: 10
+    lr: 0.00002        # extreme/brutal: small LR to avoid instability
+    weight_decay: 0.01
+
+# Kaggle auto-submission settings
+kaggle_competition: "3-md-4040-2026-challenge"
+dry_run: false
+
+logging:
+  logdir: "./logs"

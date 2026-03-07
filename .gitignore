@@ -1,9 +1,15 @@
-# Byte-compiled / optimized / DLL files
+# ════════════════════════════════════════════════════════════
+# PYTHON
+# ════════════════════════════════════════════════════════════
 __pycache__/
 *.py[cod]
-
-# Distribution / packaging
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
 .Python
+MANIFEST
 build/
 develop-eggs/
 dist/
@@ -16,119 +22,16 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
-*.egg
-MANIFEST
-
-# Environments
-venv/
-
-# logs and wandb
-logs/*
-wandb/*
-
-# pytorch best model and experiments
-best_model.pt
-# the config.yaml you use for your experiments
-config.yaml
-
-# Vim
-**/*.swp
-**/tags
-
-# Slurm
-logslurms
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-*.egg
-MANIFEST
-
-# Environments
-venv/
-
-# logs and wandb
-logs/*
-wandb/*
-
-# pytorch best model and experiments
-best_model.pt
-# the config.yaml you use for your experiments
-config.yaml
-
-# Vim
-**/*.swp
-**/tags
-
-# Slurm
-logslurms
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-*.egg
-MANIFEST
-
-# Environments
-venv/
-
-# logs and wandb
-logs/*
-wandb/*
-
-# pytorch best model and experiments
-best_model.pt
-# the config.yaml you use for your experiments
-config.yaml
-
-# Vim
-**/*.swp
-**/tags
-
-# Slurm
-logslurms
-
-# .gitignore
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
 
 # ════════════════════════════════════════════════════════════
-# DATASETS
+# DATASETS (très volumineux)
 # ════════════════════════════════════════════════════════════
 data/
 data_reannotated/
-scripts/denoising/preprocessed_data/
+data_output_test_*/
 
 # ════════════════════════════════════════════════════════════
 # MODEL CHECKPOINTS (partout, tous les sous-dossiers)
@@ -140,28 +43,39 @@ scripts/denoising/preprocessed_data/
 *.safetensors
 
 # ════════════════════════════════════════════════════════════
-# LOGS & OUTPUTS
+# LOGS, RUNS & OUTPUTS (modèles entraînés, TensorBoard, etc.)
 # ════════════════════════════════════════════════════════════
-runs/
 logs/
+logs_multicanal/
+src/logs/
+runs/
 outputs/
 checkpoints/
 wandb/
 *.log
+logslurms/
 
 # ════════════════════════════════════════════════════════════
-# CACHE & TEMP
+# RESULTS & CACHE (CSV de soumission, probas, logits, morph)
 # ════════════════════════════════════════════════════════════
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-*.egg-info/
-.ipynb_checkpoints/
-.pytest_cache/
-.mypy_cache/
+results/
+src/results/
+
+# ════════════════════════════════════════════════════════════
+# SCRIPTS (SAM weights, notebooks, preprocessed data)
+# ════════════════════════════════════════════════════════════
+scripts/
+
+# ════════════════════════════════════════════════════════════
+# NUMPY CACHE
+# ════════════════════════════════════════════════════════════
+*.npy
+
+# ════════════════════════════════════════════════════════════
+# TEMP FILES
+# ════════════════════════════════════════════════════════════
+tmp*.yaml
+*.tmp
 
 # ════════════════════════════════════════════════════════════
 # IDE & OS
@@ -173,6 +87,7 @@ __pycache__/
 *~
 .DS_Store
 Thumbs.db
+**/tags
 
 # ════════════════════════════════════════════════════════════
 # ENVIRONMENT
@@ -182,9 +97,3 @@ Thumbs.db
 venv/
 ENV/
 env/
-
-# ════════════════════════════════════════════════════════════
-# EXCEPTIONS (fichiers à GARDER malgré les règles ci-dessus)
-# ════════════════════════════════════════════════════════════
-# Si tu veux garder un .pth spécifique:
-# !models/pretrained_weights.pth

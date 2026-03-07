@@ -1,0 +1,44 @@
+# Test rapide: heavy_spatial augmentations + GHMCLoss
+# ResNet34 @ 128px, 15 epochs, max10000
+data:
+  resize: 128
+  batch_size: 64
+  num_workers: 4
+  valid_ratio: 0.2
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "heavy_spatial"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max10000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "heavy_spatial"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+
+model:
+  class: "TimmModel"
+  backbone: "resnet34"
+  pretrained: True
+  freeze_backbone: False
+
+optim:
+  algo: "AdamW"
+  params:
+    lr: 0.001
+    weight_decay: 0.01
+
+scheduler:
+  class: "CosineAnnealingLR"
+  T_max: 30
+
+loss:
+  class: "GHMCLoss"
+  bins: 10
+  momentum: 0.75
+
+nepochs: 30
+
+logging:
+  logdir: "./logs"

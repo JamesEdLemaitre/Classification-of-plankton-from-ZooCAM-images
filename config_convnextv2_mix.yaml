@@ -1,0 +1,59 @@
+# ConvNeXtV2-Base @ 288px with Mixup/CutMix
+# Modern pure-CNN architecture with GRN (Global Response Normalization).
+# Very different feature extraction from both ViTs (DINOv3, SwinV2) and
+# older CNNs (ResNeXt, EfficientNet) — improves ensemble decorrelation.
+# Launch with: python -m torchtmpl.main config_convnextv2_mix.yaml train
+data:
+  resize: 288
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0.2
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "heavy_mix"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "heavy_mix"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      augmentations_version: "heavy_mix"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+
+model:
+  class: "TimmModel"
+  backbone: "convnextv2_base.fcmae_ft_in22k_in1k"
+  pretrained: True
+  freeze_backbone: False
+
+# Mixup/CutMix strategy — strong regularization via sample mixing
+mixup:
+  mixup_alpha: 0.8       # Beta distribution param for Mixup blending
+  cutmix_alpha: 1.0      # Beta distribution param for CutMix patch size
+  prob: 1.0              # Probability of applying mix per batch
+  switch_prob: 0.5       # Probability of switching between Mixup and CutMix
+  label_smoothing: 0.1   # Smoothing applied to mixed targets
+  mode: "batch"          # Mix within batch
+
+optim:
+  algo: "AdamW"
+  params:
+    lr: 0.00008
+    weight_decay: 0.02
+
+scheduler:
+  class: "CosineAnnealingLR"
+  T_max: 40
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+nepochs: 40
+
+logging:
+  logdir: "./logs"

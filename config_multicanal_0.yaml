@@ -1,0 +1,36 @@
+data:
+  resize: 224
+  batch_size: 32
+  num_workers: 4
+  valid_ratio: 0.2
+  training_type: "multicanal"
+  original_dataset: "./data/original_dataset_optimized_512px/train"
+  clahe_dataset: "./data/original_dataset_optimized_512px_clahe/train"
+  masks_dataset: "./data/original_dataset_optimized_512px_masks/train"
+
+model:
+  class: "TimmModel"          
+  backbone: "resnext50_32x4d"
+  pretrained: True            
+  freeze_backbone: False
+  model_path: "./logs_multicanal/TimmModel_4/best_model.pt"
+
+optim:
+  algo: "AdamW"
+  params:           
+    lr: 0.0001
+    weight_decay: 0.01
+
+  
+scheduler:
+  class: "ReduceLROnPlateau" # Informatif (ton code force cette classe)
+  factor: 0.5    
+  patience: 5
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+nepochs: 25
+
+logging:
+  logdir: "./logs_multicanal" 

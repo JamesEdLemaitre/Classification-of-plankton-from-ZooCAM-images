@@ -3,12 +3,12 @@ data:
   resize: 224
   batch_size: 32
   num_workers: 4
-  valid_ratio: 0.1
+  valid_ratio: 0.2
   test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
   sources:
     original_dataset:
       path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
-      augmentations_version: "basic" 
+      augmentations_version: "pelgas_basic" 
       classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
     pelgas_dataset:
       path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
@@ -27,7 +27,7 @@ model:
   backbone: "resnext50_32x4d"
   pretrained: True            
   freeze_backbone: False
-  model_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/logs/TimmModel_5/best_model.pt"
+  model_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/logs/TimmModel_22/best_model.pt"
 
 optim:
   algo: "AdamW"
@@ -43,7 +43,7 @@ scheduler:
 loss:
   class: "CrossEntropyLoss"
 
-nepochs: 40
+nepochs: 25
 
 logging:
   logdir: "./logs" 

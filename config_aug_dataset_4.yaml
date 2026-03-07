@@ -1,0 +1,49 @@
+# Got 82.8% f1-score
+data:
+  resize: 300
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0.2
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "basic" 
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "basic"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      "path": "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      "augmentations_version": "basic"
+      "classes_weights_file": "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      "classes_mapping_file": "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+          
+
+model:
+  class: "TimmModel"          
+  backbone: "efficientnet_b3"
+  pretrained: True            
+  freeze_backbone: False
+  model_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/logs/TimmModel_26/best_model.pt"
+
+optim:
+  algo: "AdamW"
+  params:           
+    lr: 0.0001
+    weight_decay: 0.01
+
+scheduler:
+  class: "ReduceLROnPlateau" # Informatif (ton code force cette classe)
+  factor: 0.5    
+  patience: 3
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+nepochs: 30
+
+logging:
+  logdir: "./logs" 

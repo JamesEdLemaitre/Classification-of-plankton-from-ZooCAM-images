@@ -1,0 +1,49 @@
+# DINOv2 ViT-Base @ 308px (multiple of 14 for patch14)
+# Two-phase training: head warmup + full fine-tuning with layer-wise LR decay
+# Launch with: python -m torchtmpl.main config_dinov2.yaml train_dinov2
+data:
+  resize: 308  # Must be multiple of 14 for DINOv2 patch14
+  batch_size: 16
+  num_workers: 4
+  valid_ratio: 0.2
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+  sources:
+    original_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+      augmentations_version: "heavy" 
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/original_dataset_max20000.jsonc"
+    pelgas_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/pelgas_dataset_cropped_optimized_512px/101141/individual_images/"
+      augmentations_version: "heavy"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/pelgas_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/pelgas_to_original.jsonc"
+    ndsb_dataset:
+      path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/ndsb_dataset_optimized_512px/train"
+      augmentations_version: "heavy"
+      classes_weights_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/classes_weights/ndsb_dataset_0.jsonc"
+      classes_mapping_file: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/datasets_mappers/ndsb_to_original.jsonc"
+
+model:
+  class: "DINOv2Model"          
+  backbone: "vit_base_patch14_dinov2"
+  pretrained: True            
+  drop_rate: 0.1
+
+# Phase 1: Head-only warmup (backbone frozen)
+phase1:
+  nepochs: 5
+  lr: 0.001
+
+# Phase 2: Full fine-tuning with layer-wise LR decay
+phase2:
+  nepochs: 30
+  lr_backbone: 0.00001    # Base LR for deepest backbone layer
+  lr_head: 0.0005         # LR for classification head
+  layer_decay: 0.75       # LR multiplier per layer (earlier = lower)
+  weight_decay: 0.05
+
+loss:
+  class: "FocalCrossEntropyMix"
+
+logging:
+  logdir: "./logs"

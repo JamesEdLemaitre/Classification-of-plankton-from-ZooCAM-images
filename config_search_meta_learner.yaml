@@ -1,0 +1,43 @@
+# Configuration pour search_meta_learner_from_cache
+# Recherche exhaustive de meta-learners simples.
+#
+# Usage:
+#   python -m torchtmpl.main config_search_meta_learner.yaml search_meta_learner_from_cache
+
+# ── Mode de features ──
+# "morph_only"  : features morphologiques extraites des masques uniquement
+# "all"         : probas + morph features depuis le cache
+# "probas_only" : probas depuis le cache, sans morph features
+features_mode: "morph_only"
+
+# ── Masques de segmentation (requis pour morph_only) ──
+masks_train_dir: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px_masks/train"
+masks_test_dir: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px_masks/test/imgs"
+
+# ── Probas cachées (requis pour all / probas_only, ignoré en morph_only) ──
+# probas_cache_dir: "results/probas_20260225-141304"
+# probas_cache_dir: "results/probas_cache"
+
+# ── Paramètres de recherche ──
+top_k_submit: 5
+n_cv_folds: 5
+
+morph_cache_dir: "results/morph_cache"  # où stocker le cache (défaut)
+feature_select_k: 30 
+n_extract_jobs: 8
+
+# ── Sous-échantillonnage par classe ──
+# 0 = pas de cap (toutes les images), N > 0 = max N images par classe
+# Avec 86 class50es et max 20000 → ~445k images max (classes rares gardées intégralement)
+max_per_class: 250
+
+# ── Paths des images originales (auto-dérivé si non fourni) ──
+# original_train_dir auto-derived from masks_train_dir by removing "_masks"
+# Uncomment to override:
+# original_train_dir: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/train"
+
+data:
+  test_path: "/home/lmalerba/projects/kaggle_challenge_sdi/kaggle_challenge_sdi/data/original_dataset_optimized_512px/test/imgs"
+
+logging:
+  logdir: "./logs"
