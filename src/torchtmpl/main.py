@@ -184,6 +184,7 @@ def train(config):
     start_epoch = 0
     if "resume_checkpoint" in config["logging"]:
         resume_path = config["logging"]["resume_checkpoint"]
+        print("Recherche du resume_path")
         if os.path.exists(resume_path):
             logging.info(f"= Resuming from checkpoint: {resume_path}")
             checkpoint = torch.load(resume_path, map_location=device)
@@ -196,6 +197,9 @@ def train(config):
             valid_losses = checkpoint['valid_losses']
             F1_scores = checkpoint['F1_scores']
             logging.info(f"  Resuming from epoch {start_epoch}")
+            print(f" Resuming from epoch {start_epoch}")
+        else:
+            print("ATTENTION : Resume path non trouvé")
     #####
 
     # Define the early stopping callback
@@ -204,7 +208,7 @@ def train(config):
     )
 
     epoch_pbar = tqdm(
-        range(start_epoch, config["nepochs"]), 
+        range(start_epoch, config["nepochs"] + start_epoch), 
         desc="Training", 
         unit="epoch",
         position=0,

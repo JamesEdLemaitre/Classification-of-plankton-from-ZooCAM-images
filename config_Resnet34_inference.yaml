@@ -24,10 +24,10 @@ logging:
   # wandb: 
   #   project: sample_project
   #   entity: sample_entity
-  logdir: "./logs/Resnet34/Coarse/Normalize" 
+  logdir: "./logs/Resnet34/Coarse/Normalize/secondtraining/retry" 
   #resume_checkpoint: "./logs/ResNet50_0/last_checkpoint.pt"
-  results_path: "./results/Resnet34/Coarse/Normalize"
-  model_path: "./logs/Resnet34/Coarse/Normalize/ResNet34_0/best_model.pt"  
+  results_path: "./results/Resnet34/Coarse/Normalize/secondtraining/retry"
+  model_path: "./logs/Resnet34/Coarse/Normalize/secondtraining/ResNet34_0/best_model.pt"  
   
 
 scheduler:
