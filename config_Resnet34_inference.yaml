@@ -26,7 +26,8 @@ logging:
   #   entity: sample_entity
   logdir: "./logs/Resnet34/Coarse/Normalize/secondtraining/retry" 
   #resume_checkpoint: "./logs/ResNet50_0/last_checkpoint.pt"
-  results_path: "./results/Resnet34/Coarse/Normalize/secondtraining/retry"
+  results_path: "./results/probas/Resnet34_2"
+  #model_path: "./logs/Resnet34/Coarse/Normalize/ResNet34_0/best_model.pt"  
   model_path: "./logs/Resnet34/Coarse/Normalize/secondtraining/ResNet34_0/best_model.pt"  
   
 

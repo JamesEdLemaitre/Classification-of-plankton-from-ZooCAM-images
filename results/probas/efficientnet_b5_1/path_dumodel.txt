@@ -1,0 +1,1 @@
+model_path: "./logs/Cosine/Avectransfo/efficientnet_b5_0/best_model.pt"

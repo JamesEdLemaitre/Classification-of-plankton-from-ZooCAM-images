@@ -25,9 +25,15 @@ logging:
   #   project: sample_project
   #   entity: sample_entity
   logdir: "./logs/RGB/efficientnet_b5_1_60epochs" 
-  results_path: "./results/Cosine/Avectransfo/TTA"
+  results_path: "./results/probas/efficientnet_b5_1"
   #pretrained_model_path: "./logs/RGB/efficientnet_b5_0/best_model.pt"
-  model_path: "./logs/Cosine/Avectransfo/efficientnet_b5_0/best_model.pt"
+  #model_path: "./logs/Cosine/Avectransfo/efficientnet_b5_0/best_model.pt"
+  model_path: "./logs/Cosine/efficientnet_b5_0/best_model.pt"
+  model_path: "./logs/RGB/efficientnet_b5_1_60epochs/Finetuned20epochs_withBCE_L2/efficientnet_b5_1/best_model.pt"
+
+  ## Moins bon F1 score de validation que les autres, presque sur que c'est un mauvais
+  model_path: "./logs/RGB/efficientnet_b5_1_60epochs/efficientnet_b5_0/best_model.pt"
+
   
 
 scheduler:

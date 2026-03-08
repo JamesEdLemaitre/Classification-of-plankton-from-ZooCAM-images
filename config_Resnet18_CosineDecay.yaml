@@ -38,4 +38,4 @@ scheduler:
 # model:
 #   class: Linear
 model:
-  class: efficientnet_b5
+  class: Resnet18

@@ -199,7 +199,7 @@ def train(config):
             logging.info(f"  Resuming from epoch {start_epoch}")
             print(f" Resuming from epoch {start_epoch}")
         else:
-            print("ATTENTION : Resume path non trouvé")
+            raise ValueError("ATTENTION : Resume path non trouvé")
     #####
 
     # Define the early stopping callback
@@ -424,6 +424,7 @@ def test(config):
     logging.info("= Running inference")
     
     predictions = []
+    all_probs = []
     filenames = []
     
     '''with torch.no_grad():
@@ -433,7 +434,6 @@ def test(config):
             _, preds = torch.max(outputs, 1)
             predictions.extend(preds.cpu().numpy())'''
     
-    #####
     print("\nTest time augmentation\n")
     with torch.no_grad():
         for images, _ in tqdm(test_loader, desc="Inference", unit="batch"):
@@ -451,7 +451,8 @@ def test(config):
             avg_probs = sum(F.softmax(model(v), dim=1) for v in versions) / 4
             _, preds = torch.max(avg_probs, 1)
             predictions.extend(preds.cpu().numpy())
-    #####
+            all_probs.append(avg_probs.cpu().numpy())
+
     
     # Récupérer les noms de fichiers dans l'ordre
     for idx in range(len(test_dataset)):
@@ -466,6 +467,17 @@ def test(config):
         'imgname': filenames,
         'label': predictions
     })
+
+    ##### Sauvegarder les probabilités pour l'ensembling 
+    all_probs = np.concatenate(all_probs, axis=0)  # [N, num_classes]
+
+    probs_df = pd.DataFrame(
+        all_probs,
+        columns=[f"c{i}" for i in range(num_classes)]
+    )
+    probs_df.insert(0, 'imgname', filenames)
+    probs_df.to_csv(os.path.join(results_path, "probs.csv"), index=False)
+    #####
     
     # Sauvegarder
     output_file = os.path.join(results_path, "submission.csv")
